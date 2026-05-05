@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-worker
+  namespace: rigup
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: agent-worker
+  template:
+    metadata:
+      labels:
+        app: agent-worker
+    spec:
+      containers:
+        - name: agent-worker
+          image: rigup/agent-worker:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8090
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: AGENT_POLL_INTERVAL_MS
+              value: "1000"
+            - name: AGENT_MAX_TOOL_ROUNDS
+              value: "8"
+            - name: AGENT_HEALTH_PORT
+              value: "8090"
+            - name: AI_BASE_URL
+              value: https://api.groq.com/openai/v1
+            - name: AI_MODEL
+              value: llama-3.3-70b-versatile
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: rigup-secrets
+                  key: DATABASE_URL
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rigup-secrets
+                  key: AI_API_KEY
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-worker
+  namespace: rigup
+spec:
+  selector:
+    app: agent-worker
+  ports:
+    - port: 8090
+      targetPort: 8090
+  type: ClusterIP

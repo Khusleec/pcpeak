@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-api
+  namespace: rigup
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: core-api
+  template:
+    metadata:
+      labels:
+        app: core-api
+    spec:
+      containers:
+        - name: core-api
+          image: rigup/core-api:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4000
+          env:
+            - name: PORT
+              value: "4000"
+            - name: JWT_EXPIRES_IN
+              value: "1d"
+            - name: NODE_ENV
+              value: production
+            - name: FRONTEND_URL
+              value: https://rigup.example.com
+            - name: TRUST_PROXY
+              value: "true"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: rigup-secrets
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: rigup-secrets
+                  key: JWT_SECRET
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 4000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 4000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 150m
+              memory: 192Mi
+            limits:
+              cpu: 700m
+              memory: 768Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: core-api
+  namespace: rigup
+spec:
+  selector:
+    app: core-api
+  ports:
+    - port: 4000
+      targetPort: 4000
+  type: ClusterIP

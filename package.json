@@ -1,0 +1,22 @@
+{
+  "name": "rigup",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Rigup — React-only frontend + SOA backend (core-api + agent-worker + MySQL). One-command launcher.",
+  "scripts": {
+    "start": "node infra/scripts/start.js",
+    "stop": "docker compose down",
+    "restart": "docker compose down && node infra/scripts/start.js",
+    "logs": "docker compose logs -f",
+    "ps": "docker compose ps",
+    "build": "docker compose build",
+    "rebuild": "docker compose build --no-cache && node infra/scripts/start.js",
+    "clean": "docker compose down -v --remove-orphans",
+    "full": "node infra/scripts/start.js --full",
+    "seed": "docker compose exec -T core-api node src/db/seed.js",
+    "db:shell": "docker compose exec mysql mysql -u rigup -p rigup"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

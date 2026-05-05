@@ -1,0 +1,30 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install and test core-api
+        working-directory: backend/core-api
+        run: |
+          npm install
+          npm test
+
+      - name: Install and validate frontend
+        working-directory: frontend
+        run: |
+          npm install
+          npm run lint
+          npm test
+          npm run build
