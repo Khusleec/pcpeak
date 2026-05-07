@@ -4,7 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { ArrowRight, AlertOctagon } from 'lucide-react';
 
-const GOOGLE_AUTH_URL = (process.env.REACT_APP_API_URL || 'http://localhost:4000/api') + '/auth/google';
+import { getApiBaseUrl } from '../api/apiBase';
+
+const GOOGLE_AUTH_URL = `${getApiBaseUrl()}/auth/google`;
 
 export default function LoginPage() {
   const { login } = useAuth();

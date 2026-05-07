@@ -1,10 +1,13 @@
 import axios from 'axios';
+import { getApiBaseUrl } from './apiBase';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5500/api';
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 30_000,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: false,
 });
 
 // Attach JWT token to every request
@@ -23,6 +26,14 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.code === 'ECONNABORTED') {
+      error.userMessage = 'Request timed out. Check your connection and try again.';
+    } else if (error.code === 'ERR_NETWORK' || !error.response) {
+      error.userMessage =
+        'Cannot reach the API. Check REACT_APP_API_URL (Vercel env) and that the backend is up.';
+    } else if (error.response?.data?.error) {
+      error.userMessage = error.response.data.error;
+    }
     const status = error.response?.status;
     const url = error.config?.url || '';
     // Anchor the match — `includes` would match e.g. `/posts/auth/me-comments`.

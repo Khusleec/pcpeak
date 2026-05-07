@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import { getApiBaseUrl } from '../api/apiBase';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -177,7 +178,7 @@ export default function CafeMap() {
           <div className="map-overlay__title">Салбар ачаалагдаагүй</div>
           <div className="map-overlay__msg">{error}</div>
           <div className="map-overlay__hint mono">
-            Backend: {process.env.REACT_APP_API_URL || 'http://localhost:4000/api'} — npm run dev (backend) + DATABASE_URL
+            Backend: {getApiBaseUrl()} — npm run dev (backend) + DATABASE_URL
           </div>
           <button type="button" className="map-overlay__btn" onClick={loadCafes}>
             Дахин оролдох

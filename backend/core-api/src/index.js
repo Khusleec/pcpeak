@@ -21,11 +21,11 @@ if (config.trustProxy) {
 
 // ─── Security Middleware ────────────────────────────────────
 app.use(helmet());
-// Allow the configured frontend URL plus localhost/127.0.0.1 dev origins
-// (covers Windsurf browser-preview proxy and direct CRA dev servers).
+// Primary: FRONTEND_URL; optional: CORS_ORIGINS (comma-separated, e.g. Vercel + previews)
 const allowedOrigins = new Set(
   [
     config.frontendUrl,
+    ...config.corsExtraOrigins,
     'http://localhost:3000',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
@@ -40,7 +40,8 @@ app.use(
       if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
         return cb(null, true);
       }
-      return cb(new Error(`CORS blocked: ${origin}`));
+      console.warn(`[cors] blocked origin: ${origin}`);
+      return cb(null, false);
     },
     credentials: true,
   })
@@ -110,13 +111,23 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, _next) => {
+  if (err && String(err.message || '').startsWith('CORS')) {
+    return res.status(403).json({ error: 'Forbidden', detail: 'CORS policy' });
+  }
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
 if (require.main === module) {
-  app.listen(config.port, () => {
+  const pool = require('./db/pool');
+  app.listen(config.port, async () => {
     console.log(`Mongol PC API on port ${config.port} (${config.nodeEnv})`);
+    try {
+      await pool.query('SELECT 1');
+      console.log('MySQL: ok');
+    } catch (e) {
+      console.error('MySQL: connection check failed:', e.message);
+    }
   });
 }
 

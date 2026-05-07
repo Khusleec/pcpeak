@@ -1,5 +1,13 @@
 require('dotenv').config();
 
+function parseCommaList(s) {
+  if (!s || !String(s).trim()) return [];
+  return String(s)
+    .split(',')
+    .map((x) => x.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+}
+
 const nodeEnv = process.env.NODE_ENV || 'development';
 const isProd = nodeEnv === 'production';
 
@@ -46,7 +54,9 @@ module.exports = {
     secret: jwtSecret && String(jwtSecret).trim().length > 0 ? jwtSecret.trim() : 'dev-secret-change-me',
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   },
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
+  frontendUrl: (process.env.FRONTEND_URL || 'http://localhost:3000').trim().replace(/\/+$/, ''),
+  /** Extra browser origins for CORS (comma-separated), e.g. Vercel preview URLs */
+  corsExtraOrigins: parseCommaList(process.env.CORS_ORIGINS),
   // Prefer AI_*; OPENAI_* / legacy names still work via fallbacks below.
   ai: {
     apiKey: process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '',
