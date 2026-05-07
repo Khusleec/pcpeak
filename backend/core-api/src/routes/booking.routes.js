@@ -69,9 +69,9 @@ router.post('/', authenticateToken, validate(createBookingSchema), async (req, r
     const deposit_amount = roundMoney(total_price * DEPOSIT_RATE);
     const startsAtDb = new Date(starts_at).toISOString().slice(0, 19).replace('T', ' ');
     const endsAtDb = new Date(ends_at).toISOString().slice(0, 19).replace('T', ' ');
-    const useQpay = config.qpay.enabled;
-    const bookingStatus = useQpay ? 'pending_payment' : 'confirmed';
-    const paymentStatus = useQpay ? 'unpaid' : 'not_required';
+    const useDepositFlow = config.qpay.enabled || config.paymentsDemoMode;
+    const bookingStatus = useDepositFlow ? 'pending_payment' : 'confirmed';
+    const paymentStatus = useDepositFlow ? 'unpaid' : 'not_required';
     await client.query(
       `INSERT INTO bookings (id, user_id, cafe_id, total_price, status, payment_status, starts_at, ends_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -94,11 +94,11 @@ router.post('/', authenticateToken, validate(createBookingSchema), async (req, r
 
     let qpay = null;
     let qpay_invoice_error = false;
-    if (useQpay) {
+    if (useDepositFlow) {
       try {
         qpay = await issueDepositInvoice(bookingId, user_id);
       } catch (e) {
-        console.error('QPay deposit invoice:', e.message, e.code || e.data || '');
+        console.error('Deposit invoice:', e.message, e.code || e.data || '');
         qpay_invoice_error = true;
       }
     }
@@ -128,9 +128,22 @@ router.post('/', authenticateToken, validate(createBookingSchema), async (req, r
   }
 });
 
+// ─── Auto-complete past bookings ───────────────────────────
+// Flip any 'confirmed' booking whose end time has passed to 'completed'.
+// Runs cheaply on every list call so users always see fresh statuses.
+async function autoCompletePastBookings() {
+  await pool.query(
+    `UPDATE bookings
+        SET status = 'completed'
+      WHERE status = 'confirmed'
+        AND ends_at <= NOW()`
+  );
+}
+
 // ─── Get User Bookings ─────────────────────────────────────
 router.get('/my', authenticateToken, async (req, res) => {
   try {
+    await autoCompletePastBookings();
     const result = await pool.query(
       `SELECT b.*, c.name AS cafe_name,
               ROUND(b.total_price * ?, 2) AS deposit_amount,
@@ -192,6 +205,7 @@ router.patch('/:id/cancel', authenticateToken, async (req, res) => {
 // ─── Admin: Get All Bookings ────────────────────────────────
 router.get('/all', authenticateToken, authorize('admin', 'moderator'), async (req, res) => {
   try {
+    await autoCompletePastBookings();
     const result = await pool.query(
       `SELECT b.*, u.display_name AS user_name, u.email AS user_email, c.name AS cafe_name,
               ROUND(b.total_price * ?, 2) AS deposit_amount,

@@ -25,7 +25,9 @@ export default function CafeDetailPage() {
   useEffect(() => {
     api
       .get('/config/public')
-      .then(({ data }) => setPaymentsMode(data?.paymentsMode === 'qpay' ? 'qpay' : 'local'))
+      .then(({ data }) =>
+        setPaymentsMode(data?.paymentsMode === 'qpay' || data?.paymentsMode === 'demo' ? data.paymentsMode : 'local')
+      )
       .catch(() => setPaymentsMode('local'));
   }, []);
 
@@ -158,7 +160,7 @@ export default function CafeDetailPage() {
               UTC+08
             </span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="time-inputs-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label>// ЭХЛЭХ ЦАГ</label>
               <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
@@ -171,7 +173,7 @@ export default function CafeDetailPage() {
         </div>
 
         {/* PC Grid + Summary */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 16, alignItems: 'start' }}>
+        <div className="cafe-detail-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 16, alignItems: 'start' }}>
           <div className="panel">
             <div className="panel-header">
               <span className="label label-red">// 002 — КОМПЬЮТЕР СОНГОХ</span>

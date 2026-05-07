@@ -1,42 +1,82 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Terminal, X, ArrowUp } from 'lucide-react';
+import { Terminal, X, ArrowUp, MessageSquarePlus } from 'lucide-react';
+import axios from 'axios';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+
+const WELCOME_MESSAGE = {
+  role: 'assistant',
+  content:
+    '> САЙН БАЙНА УУ! Би таны AI туслагч.\n> Ерөнхий яриа, асуулт, санаа — юуг ч асууж болно. Салбар, компьютер, захиалгын талаар бол би өгөгдлөөр тусална.',
+};
+
+function initialMessages() {
+  return [{ ...WELCOME_MESSAGE }];
+}
 
 export default function ChatWidget() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: '> САЙН БАЙНА УУ! Би таны AI туслагч.\n> Юу ч асууж болно — программ, орчуулга, зөвлөгөө эсвэл Mongol PC-ийн захиалга.' },
-  ]);
+  const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [chatEpoch, setChatEpoch] = useState(0);
   const messagesEndRef = useRef(null);
+  const chatAbortRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(
+    () => () => {
+      chatAbortRef.current?.abort();
+    },
+    []
+  );
+
+  const startNewChat = () => {
+    chatAbortRef.current?.abort();
+    chatAbortRef.current = null;
+    setChatEpoch((e) => e + 1);
+    setMessages(initialMessages());
+    setInput('');
+    setLoading(false);
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
     const userMsg = input.trim();
     setInput('');
     // Capture history BEFORE we append the new user message so the server
-    // gets prior turns as context (last 10 turns max to stay under token limits).
+    // gets prior turns as context (last 12 turns max to stay under token limits).
     const history = messages
       .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .slice(-10)
+      .slice(-12)
       .map((m) => ({ role: m.role, content: m.content }));
     setMessages((prev) => [...prev, { role: 'user', content: userMsg }]);
     setLoading(true);
 
+    const controller = new AbortController();
+    chatAbortRef.current = controller;
+
     try {
-      const { data } = await api.post('/agent/chat', { message: userMsg, history });
+      const { data } = await api.post(
+        '/agent/chat',
+        { message: userMsg, history },
+        { signal: controller.signal }
+      );
+      if (chatAbortRef.current !== controller) return;
       setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }]);
     } catch (err) {
+      if (axios.isCancel(err) || err.code === 'ERR_CANCELED') return;
+      if (chatAbortRef.current !== controller) return;
       setMessages((prev) => [...prev, { role: 'assistant', content: '> АЛДАА :: илгээж чадсангүй\n> Дахин оролдоно уу' }]);
     } finally {
-      setLoading(false);
+      if (chatAbortRef.current === controller) {
+        chatAbortRef.current = null;
+        setLoading(false);
+      }
     }
   };
 
@@ -58,14 +98,25 @@ export default function ChatWidget() {
               <span className="dot alert" />
               <span className="chat-header-title">AI//ТУСЛАГЧ</span>
             </div>
-            <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}>
-              <X size={14} />
-            </button>
+            <div className="chat-header-actions">
+              <button
+                type="button"
+                className="chat-header-btn"
+                onClick={startNewChat}
+                disabled={loading}
+                title="Шинэ чат — өмнөх яриа устгагдана"
+              >
+                <MessageSquarePlus size={14} />
+              </button>
+              <button type="button" className="chat-header-btn" onClick={() => setOpen(false)} title="Хаах">
+                <X size={14} />
+              </button>
+            </div>
           </div>
 
           <div className="chat-messages">
             {messages.map((msg, i) => (
-              <div key={i} className={`chat-msg ${msg.role}`}>
+              <div key={`${chatEpoch}-${i}`} className={`chat-msg ${msg.role}`}>
                 {msg.content}
               </div>
             ))}

@@ -21,8 +21,31 @@ if (config.trustProxy) {
 
 // ─── Security Middleware ────────────────────────────────────
 app.use(helmet());
-app.use(cors({ origin: config.frontendUrl, credentials: true }));
-app.use(express.json({ limit: '10kb' }));
+// Allow the configured frontend URL plus localhost/127.0.0.1 dev origins
+// (covers Windsurf browser-preview proxy and direct CRA dev servers).
+const allowedOrigins = new Set(
+  [
+    config.frontendUrl,
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+  ].filter(Boolean)
+);
+app.use(
+  cors({
+    origin(origin, cb) {
+      if (!origin) return cb(null, true); // curl, server-to-server
+      if (allowedOrigins.has(origin)) return cb(null, true);
+      // Permit any localhost/127.0.0.1 port (covers browser previews & local tools).
+      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+        return cb(null, true);
+      }
+      return cb(new Error(`CORS blocked: ${origin}`));
+    },
+    credentials: true,
+  })
+);
+app.use(express.json({ limit: '256kb' }));
 
 if (config.nodeEnv === 'production') {
   app.use(morgan('combined'));
@@ -49,11 +72,13 @@ app.use('/api/', limiter);
 // ─── Public client hints (no secrets) ───────────────────────
 app.get('/api/config/public', (_req, res) => {
   const q = config.qpay;
+  const demo = Boolean(config.paymentsDemoMode);
   res.json({
     qpayEnabled: q.enabled,
+    paymentsDemoMode: demo,
     /** Invoice + callback need a reachable HTTPS API base (ngrok / prod). */
     qpayCallbackReady: Boolean((q.publicBaseUrl || '').length > 0),
-    paymentsMode: q.enabled ? 'qpay' : 'local',
+    paymentsMode: q.enabled ? 'qpay' : demo ? 'demo' : 'local',
     qpayEbarimtEnabled: Boolean(q.enabled && q.ebarimtEnabled),
     simulatePaymentAllowed: Boolean(config.simulatePaymentAllowed),
   });

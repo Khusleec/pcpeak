@@ -6,13 +6,17 @@
 const { v4: uuidv4 } = require('uuid');
 const pool = require('./db');
 
+/** Same as core-api booking.routes — these bookings still reserve PCs for the slot. */
+const BOOKING_BLOCKS_SLOT_SQL = `b.status IN ('confirmed', 'pending_payment')`;
+
 // ─── Schemas exposed to the LLM ─────────────────────────────
 const tools = [
   {
     type: 'function',
     function: {
       name: 'list_cafes',
-      description: 'List all available PC cafes with location and PC counts',
+      description:
+        'List PC cafes (Mongol PC). Call ONLY when the user clearly asks about branches, locations, or which cafes exist — not for general chat.',
       parameters: { type: 'object', properties: {}, required: [] },
     },
   },
@@ -20,7 +24,8 @@ const tools = [
     type: 'function',
     function: {
       name: 'get_available_pcs',
-      description: 'Get available PCs at a specific cafe, optionally filtered by tier and time range',
+      description:
+        'Get available PCs at a cafe. Call ONLY when the user asks about booking availability, free machines, or time slots at a specific cafe.',
       parameters: {
         type: 'object',
         properties: {
@@ -37,7 +42,8 @@ const tools = [
     type: 'function',
     function: {
       name: 'create_booking',
-      description: 'Book one or more PCs at a cafe for a specific time range',
+      description:
+        'Create a PC booking. Call ONLY after the user explicitly wants to book and you have cafe_id, pc_ids, starts_at, ends_at.',
       parameters: {
         type: 'object',
         properties: {
@@ -54,7 +60,8 @@ const tools = [
     type: 'function',
     function: {
       name: 'get_my_bookings',
-      description: 'Get the current user bookings',
+      description:
+        "List the signed-in user's bookings. Call ONLY when they ask about their orders, reservations, or booking history.",
       parameters: { type: 'object', properties: {}, required: [] },
     },
   },
@@ -62,7 +69,8 @@ const tools = [
     type: 'function',
     function: {
       name: 'cancel_booking',
-      description: 'Cancel a booking by booking ID',
+      description:
+        'Cancel a booking by ID. Call ONLY when the user explicitly asks to cancel a specific booking.',
       parameters: {
         type: 'object',
         properties: {
@@ -103,7 +111,7 @@ async function executeTool(name, args, userId) {
         q += ` AND p.id NOT IN (
           SELECT bi.pc_id FROM booking_items bi
             JOIN bookings b ON bi.booking_id = b.id
-           WHERE b.status = 'confirmed' AND b.starts_at < ? AND b.ends_at > ?
+           WHERE ${BOOKING_BLOCKS_SLOT_SQL} AND b.starts_at < ? AND b.ends_at > ?
         )`;
         params.push(toMySQLDate(args.ends_at), toMySQLDate(args.starts_at));
       }
@@ -138,7 +146,7 @@ async function executeTool(name, args, userId) {
         const conflicts = await client.query(
           `SELECT DISTINCT bi.pc_id FROM booking_items bi
              JOIN bookings b ON bi.booking_id = b.id
-            WHERE bi.pc_id IN (?) AND b.status='confirmed'
+            WHERE bi.pc_id IN (?) AND ${BOOKING_BLOCKS_SLOT_SQL}
               AND b.starts_at < ? AND b.ends_at > ?`,
           [args.pc_ids, toMySQLDate(args.ends_at), toMySQLDate(args.starts_at)]
         );
@@ -212,7 +220,7 @@ async function executeTool(name, args, userId) {
     case 'cancel_booking': {
       const r = await pool.query(
         `UPDATE bookings SET status='cancelled'
-          WHERE id=? AND user_id=? AND status='confirmed'`,
+          WHERE id=? AND user_id=? AND status IN ('confirmed', 'pending_payment')`,
         [args.booking_id, userId]
       );
       return r.rowCount > 0

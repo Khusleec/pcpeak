@@ -51,7 +51,7 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section className="container" style={{ padding: '80px 24px 48px' }}>
+      <section className="container" style={{ paddingTop: 80, paddingBottom: 48 }}>
         <div className="section-head">
           <div>
             <div className="section-eyebrow">// 002 — СИСТЕМИЙН БОЛОМЖ</div>
@@ -80,7 +80,7 @@ export default function HomePage() {
       </section>
 
       {/* Map Preview */}
-      <section className="container" style={{ paddingBottom: 80 }}>
+      <section className="container" style={{ paddingBottom: 64 }}>
         <div className="section-head">
           <div>
             <div className="section-eyebrow">// 003 — БАЙРШИЛ</div>

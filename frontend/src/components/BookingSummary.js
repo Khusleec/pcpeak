@@ -4,6 +4,7 @@ import { Zap } from 'lucide-react';
 export default function BookingSummary({ selectedPCs, tiers, startsAt, endsAt, onBook, loading, paymentsMode = 'local' }) {
   if (!selectedPCs.length) return null;
 
+  const depositFlow = paymentsMode === 'qpay' || paymentsMode === 'demo';
   const pcDetails = [];
   for (const tierGroup of tiers) {
     for (const pc of tierGroup.pcs) {
@@ -69,12 +70,18 @@ export default function BookingSummary({ selectedPCs, tiers, startsAt, endsAt, o
         disabled={loading || !startsAt || !endsAt}
       >
         <Zap size={11} />{' '}
-        {loading ? 'ИЛГЭЭЖ БАЙНА...' : paymentsMode === 'qpay' ? '30% БАРЬЦААГААР ЗАХИАЛАХ (QPay)' : 'ЗАХИАЛАХ'}
+        {loading ? 'ИЛГЭЭЖ БАЙНА...' : depositFlow ? (paymentsMode === 'demo' ? '30% БАРЬЦААГААР ЗАХИАЛАХ (ЖИШЭЭ)' : '30% БАРЬЦААГААР ЗАХИАЛАХ (QPay)') : 'ЗАХИАЛАХ'}
       </button>
 
-      {paymentsMode !== 'qpay' && (
+      {!depositFlow && (
         <p className="label" style={{ textAlign: 'center', marginTop: 10, color: 'var(--text-muted)', lineHeight: 1.5 }}>
           Төлбөрийн горим: орон нутгийн (QPay тохируулаагүй). Захиалга шууд баталгаажина — «Миний захиалга»-д төлбөрийн товч гарахгүй.
+        </p>
+      )}
+
+      {paymentsMode === 'demo' && (
+        <p className="label" style={{ textAlign: 'center', marginTop: 8, color: 'var(--amber)', lineHeight: 1.5 }}>
+          PAYMENTS_DEMO_MODE: жинхэнэ QPay биш. Захиалга «төлбөр хүлээгдэж байна» болно; «Миний захиалга»-д баталгаажуулах товч гарна.
         </p>
       )}
 

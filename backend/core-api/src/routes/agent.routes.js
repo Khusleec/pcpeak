@@ -46,7 +46,7 @@ router.post('/chat', authenticateToken, async (req, res) => {
     if (Array.isArray(history) && history.length > 0) {
       const safeHistory = history
         .filter((h) => h && (h.role === 'user' || h.role === 'assistant') && typeof h.content === 'string')
-        .slice(-10)
+        .slice(-12)
         .map((h) => ({ role: h.role, content: String(h.content).slice(0, 4000) }));
       stored = JSON.stringify({ v: 1, message: message.trim(), history: safeHistory });
     }

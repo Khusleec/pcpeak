@@ -18,15 +18,21 @@ if (isProd) {
 const trustProxyEnv = process.env.TRUST_PROXY;
 const trustProxy = trustProxyEnv === 'true' || trustProxyEnv === '1';
 
-/** Dev/staging only: POST /api/payments/simulate/bookings/:id marks deposit paid without QPay. */
-const simulatePaymentAllowed =
+/** No merchant keys: pending_payment + local invoice link; confirm via simulate (allowed when this is true, including production). */
+const paymentsDemoMode =
+  process.env.PAYMENTS_DEMO_MODE === 'true' || process.env.PAYMENTS_DEMO_MODE === '1';
+
+/** POST /api/payments/simulate/bookings/:id — also allowed when PAYMENTS_DEMO_MODE is on (any NODE_ENV). */
+const allowSimulateEnv =
   process.env.ALLOW_SIMULATE_PAYMENT === 'true' || process.env.ALLOW_SIMULATE_PAYMENT === '1';
+const simulatePaymentAllowed = paymentsDemoMode || (allowSimulateEnv && !isProd);
 
 module.exports = {
   port: parseInt(process.env.PORT, 10) || 4000,
   nodeEnv,
   trustProxy,
-  simulatePaymentAllowed: simulatePaymentAllowed && !isProd,
+  paymentsDemoMode,
+  simulatePaymentAllowed,
   databaseUrl,
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID,

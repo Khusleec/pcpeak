@@ -35,18 +35,66 @@ if (!AI_API_KEY) {
 const openai = new OpenAI({ apiKey: AI_API_KEY || 'missing', baseURL: AI_BASE_URL });
 
 // ─── System prompt ──────────────────────────────────────────
-const SYSTEM_PROMPT = `Та ерөнхий зорилготой ухаалаг AI туслагч. Хэрэглэгчтэй найрсаг, чөлөөтэй, бодит мэт ярилцана уу.
+const SYSTEM_PROMPT = `Та ерөнхий зорилготой ухаалаг AI туслагч. Хэрэглэгчтэй найрсаг, чөлөөтэй, бодит мэт ярилцана уу — яриаг зөвхөн нэг сэдэгт шахахгүй.
 
 ЗАН ТӨРХ:
-- Ямар ч сэдвээр (программ хангамж, шинжлэх ухаан, өдөр тутмын асуулт, бичих, орчуулах, тооцоолох, зөвлөгөө г.м.) тус болж чадна.
+- Асуултын хүрээ өргөн: программ, техник, сургалт, ажил амьдрал, санаа цуглуулах, энгийн зөвлөгөө, тайлбарлах, орчуулах, тооцоолох, товч тайлбар, жаахан яриа гэх мэт — бүгдийг дэмжинэ.
+- Хэрэглэгч платформын талаар огт дурдахгүй байсан ч ерөнхий асуултад сайхан, хүн шиг хариулна уу. Бүх зүйлийг Mongol PC руу буцааж чиглүүлэхгүй.
 - Хэрэглэгчийн ярьсан хэлээр хариулна уу. Хэрэглэгч монголоор бичвэл монголоор, англиар бичвэл англиар.
 - Хариултыг тохиромжтой урттай гарга — энгийн асуултад богинохон, нарийн асуултад дэлгэрэнгүй.
 - Мэдэхгүй зүйлээ зохиож хариулахгүй. "Мэдэхгүй байна" гэж шударга хэлнэ.
 - Урьд нь яригдсан зүйлсийг санаж, давтахгүй.
 
-НЭМЭЛТ ХЭРЭГСЛҮҮД (СОНГОЛТТОЙ):
-- Mongol PC гэдэг гейминг компьютерийн түрээсийн систем энэ платформ дээр бий. Хэрэглэгч салбар, сул компьютер, захиалгын талаар асуувал ӨГӨГДСӨН ХЭРЭГСЛҮҮДийг ашиглан тусална.
-- Бусад тохиолдолд хэрэгсэл дуудах шаардлагагүй — шууд хариулна уу.`;
+НЭМЭЛТ ХЭРЭГСЛҮҮД (ЗӨВХӨН ХЭРЭГЛЭГЧ ЯВУУЛСАН ҮЕД):
+- Mongol PC гэдэг гейминг компьютерийн түрээсийн систем энэ платформ дээр бий. Зөвхөн салбар, сул компьютер, захиалга, үнэ, цагийн талаар тодорхой асуувал ӨГӨГДСӨН ХЭРЭГСЛҮҮДийг ашиглана.
+- Тэр бусад бүхий л тохиолдолд хэрэгсэл дуудахгүйгээр шууд ярилцана уу.
+- Өгөгдлийн хэрэгсэл (захиалга, салбар) зөвхөн чамд идэвхтэй байх үед л ашиглана — идэвхгүй үед чи ердийн текстээр л хариулна.`;
+
+/** Heuristic: only register function tools when user likely wants DB/booking actions (stops models from "tool spam" on small talk). */
+function textLooksBookingRelated(blob) {
+  const s = String(blob || '')
+    .toLowerCase()
+    .normalize('NFC');
+  if (!s.trim()) return false;
+  const hints = [
+    'booking',
+    'booked',
+    'cancel',
+    'cafe',
+    'branch',
+    'mongol pc',
+    'mongolpc',
+    'mongol-pc',
+    'захиалга',
+    'салбар',
+    'цуцла',
+    'түрээс',
+    'компьютер',
+    'zahialga',
+    'salbar',
+    'turees',
+    'kompyuter',
+    'reservation',
+  ];
+  for (const h of hints) {
+    if (s.includes(h)) return true;
+  }
+  if (/\bbook\b/i.test(s)) return true;
+  if (/\brent\b/i.test(s)) return true;
+  if (/\brental\b/i.test(s)) return true;
+  // "pc" as its own token (avoid matching unrelated words)
+  if (/(^|[^a-z])pc(s)?([^a-z]|$)/i.test(s)) return true;
+  return false;
+}
+
+function shouldAttachBookingTools(message, history) {
+  const mode = (process.env.AGENT_BOOKING_TOOLS_MODE || 'auto').toLowerCase();
+  if (mode === 'always') return true;
+  const parts = [String(message || '')];
+  const recentUser = (history || []).filter((h) => h.role === 'user').slice(-3);
+  for (const h of recentUser) parts.push(h.content);
+  return textLooksBookingRelated(parts.join('\n'));
+}
 
 // ─── Atomic claim: pick a queued row and lock it ────────────
 async function claimNextTask() {
@@ -110,7 +158,7 @@ function unpackStored(raw) {
       const history = Array.isArray(obj.history)
         ? obj.history
             .filter((h) => h && (h.role === 'user' || h.role === 'assistant') && typeof h.content === 'string')
-            .slice(-10)
+            .slice(-12)
         : [];
       return { message: obj.message, history };
     }
@@ -132,16 +180,18 @@ async function runAgentLoop(userId, rawMessage) {
     { role: 'user', content: message },
   ];
 
-  let response = await openai.chat.completions.create({
-    model: AI_MODEL,
-    messages,
-    tools,
-    tool_choice: 'auto',
-  });
+  const useTools = shouldAttachBookingTools(message, history);
+  const completionOpts = { model: AI_MODEL, messages };
+  if (useTools) {
+    completionOpts.tools = tools;
+    completionOpts.tool_choice = 'auto';
+  }
+
+  let response = await openai.chat.completions.create(completionOpts);
   let assistantMsg = response.choices[0].message;
   let rounds = 0;
 
-  while (assistantMsg.tool_calls && assistantMsg.tool_calls.length > 0) {
+  while (useTools && assistantMsg.tool_calls && assistantMsg.tool_calls.length > 0) {
     if (rounds >= MAX_TOOL_ROUNDS) {
       return 'AI туслагч хэт олон удаа хэрэгсэл дуудсан тул зогсоолоо. Асуултаа дахин товчоор оруулна уу.';
     }
@@ -171,6 +221,7 @@ async function runAgentLoop(userId, rawMessage) {
       tools,
       tool_choice: 'auto',
     });
+    // follow-up rounds only when tools were enabled for this task
     assistantMsg = response.choices[0].message;
   }
 

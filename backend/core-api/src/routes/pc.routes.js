@@ -35,7 +35,7 @@ router.get('/cafe/:cafeId', async (req, res) => {
       const conflicts = await pool.query(
         `SELECT DISTINCT bi.pc_id FROM booking_items bi
          JOIN bookings b ON bi.booking_id = b.id
-         WHERE b.cafe_id = ? AND b.status = 'confirmed'
+         WHERE b.cafe_id = ? AND b.status IN ('confirmed', 'pending_payment')
            AND b.starts_at < ? AND b.ends_at > ?`,
         [cafeId, ends_at, starts_at]
       );

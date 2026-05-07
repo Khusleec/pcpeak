@@ -21,8 +21,8 @@ function redirectFrontend(res, query = {}) {
 }
 
 async function handleQpayCallback(req, res) {
-  const bookingId = req.query.booking_id || req.body?.booking_id;
-  const sig = req.query.sig || req.body?.sig;
+  const bookingId = String(req.query.booking_id || req.body?.booking_id || '').trim();
+  const sig = String(req.query.sig || req.body?.sig || '').trim();
   if (!bookingId || !sig) {
     return res.status(400).json({ error: 'booking_id and sig required' });
   }
@@ -43,7 +43,7 @@ async function handleQpayCallback(req, res) {
     return res.status(400).json({ error: 'no invoice for booking' });
   }
 
-  if (!config.qpay.enabled) {
+  if (!config.qpay.enabled && !config.paymentsDemoMode) {
     return res.status(503).json({ error: 'QPay disabled' });
   }
 
@@ -63,10 +63,15 @@ async function handleQpayCallback(req, res) {
 }
 
 router.get('/qpay/callback', handleQpayCallback);
-router.post('/qpay/callback', express.json({ limit: '32kb' }), handleQpayCallback);
+router.post(
+  '/qpay/callback',
+  express.json({ limit: '128kb' }),
+  express.urlencoded({ extended: true, limit: '128kb' }),
+  handleQpayCallback
+);
 
 router.post('/qpay/bookings/:bookingId/invoice', authenticateToken, async (req, res) => {
-  if (!config.qpay.enabled) {
+  if (!config.qpay.enabled && !config.paymentsDemoMode) {
     return res.status(503).json({ error: 'QPay тохируулаагүй байна' });
   }
   try {
@@ -112,7 +117,7 @@ router.post('/simulate/bookings/:bookingId', authenticateToken, async (req, res)
 });
 
 router.post('/qpay/bookings/:bookingId/sync', authenticateToken, async (req, res) => {
-  if (!config.qpay.enabled) {
+  if (!config.qpay.enabled && !config.paymentsDemoMode) {
     return res.status(503).json({ error: 'QPay тохируулаагүй байна' });
   }
   const rows = await pool.query(

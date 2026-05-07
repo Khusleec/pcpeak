@@ -751,6 +751,35 @@ p, span, label, button, input, a, div {
   text-transform: uppercase;
 }
 
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-header-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 2px;
+  transition: color 0.12s, background 0.12s;
+}
+
+.chat-header-btn:hover:not(:disabled) {
+  color: var(--red);
+  background: rgba(255, 0, 0, 0.06);
+}
+
+.chat-header-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -1156,12 +1185,130 @@ p, span, label, button, input, a, div {
 }
 
 /* ─── Responsive ────────────────────────────────────────── */
+
+/* Tablet (≤1024px) */
+@media (max-width: 1024px) {
+  .container { padding: 0 20px; }
+  .page { padding: 24px 0 48px; }
+}
+
+/* Phone (≤768px) */
 @media (max-width: 768px) {
-  .pc-grid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); }
-  .chat-panel { width: calc(100vw - 48px); right: 0; }
-  .container { padding: 0 16px; }
-  .hero { padding: 56px 0 48px; }
+  /* Layout */
+  .container { padding: 0 14px; }
+  .page { padding: 20px 0 40px; }
+
+  /* Typography */
+  h1, h2, h3 { font-size: 20px; }
+  .display { font-size: 20px; }
+
+  /* Navbar */
+  .navbar { height: 52px; }
+  .navbar-brand { font-size: 14px; }
+  .navbar-brand .mono { display: none; }
+  .navbar-links a { padding: 8px 10px; font-size: 9px; letter-spacing: 0.14em; }
+  .navbar-user .btn-ghost { padding: 6px 8px; font-size: 8px; }
+  .navbar-user .mono { font-size: 9px; }
+
+  /* Hero */
+  .hero { padding: 48px 0 40px; }
+  .hero-title { font-size: clamp(32px, 12vw, 56px); margin-bottom: 16px; }
+  .hero-sub { font-size: 9px; letter-spacing: 0.14em; margin-bottom: 24px; }
+  .hero-eyebrow { font-size: 9px; margin-bottom: 16px; }
+  .container > section { padding-top: 48px !important; padding-bottom: 32px !important; }
+
+  /* Feature grid */
   .feature-grid { grid-template-columns: 1fr; }
-  .feature-tile { border-right: none; border-bottom: 1px solid var(--line-bright); }
+  .feature-tile { border-right: none; border-bottom: 1px solid var(--line-bright); padding: 22px 18px; }
   .feature-tile:last-child { border-bottom: none; }
+  .feature-tile h3 { font-size: 18px; }
+
+  /* Cafe header */
+  .cafe-header {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 18px;
+  }
+  .cafe-header-mark { width: 36px; height: 36px; }
+  .cafe-header h2 { font-size: 22px; }
+
+  /* Cafe detail layout — stack vertically */
+  .cafe-detail-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .cafe-detail-layout .booking-summary {
+    position: static;
+    order: -1;
+  }
+
+  /* Time inputs */
+  .time-inputs-row {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  /* PC grid */
+  .pc-grid { grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 3px; }
+  .pc-seat { padding: 10px 4px; min-height: 60px; }
+  .pc-seat-label { font-size: 13px; }
+  .pc-seat-status { font-size: 8px; letter-spacing: 0.12em; }
+
+  /* Booking cards */
+  .booking-card {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 14px 16px;
+  }
+  .booking-card > div:last-child {
+    text-align: left;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .booking-card .display { font-size: 20px; }
+
+  /* Section headers */
+  .section-head { flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 16px; }
+  .section-title { font-size: 20px; }
+
+  /* Chat widget */
+  .chat-widget { bottom: 16px; right: 12px; }
+  .chat-panel {
+    width: calc(100vw - 28px);
+    right: -4px;
+    max-height: 70vh;
+  }
+  .chat-messages { max-height: 40vh; }
+  .chat-toggle { width: 44px; height: 44px; }
+
+  /* Login / Register */
+  .login-card { padding: 28px 20px; max-width: 100%; }
+  .login-card h1 { font-size: 24px; }
+
+  /* Buttons */
+  .btn { padding: 10px 16px; font-size: 9px; letter-spacing: 0.18em; }
+  .btn-primary { padding: 12px 18px; }
+
+  /* Map */
+  .map-container { height: 360px; }
+
+  /* Panel */
+  .panel { padding: 14px; }
+  .panel-header { flex-direction: column; align-items: flex-start; gap: 6px; }
+
+  /* Empty state */
+  .empty { padding: 48px 20px; }
+
+  /* Profile */
+  .profile-stats { grid-template-columns: 1fr 1fr !important; }
+}
+
+/* Small phone (≤400px) */
+@media (max-width: 400px) {
+  .navbar-user .btn-ghost { padding: 6px 8px; font-size: 8px; }
+  .navbar-user .mono { font-size: 8px; }
+  .pc-grid { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); }
+  .booking-card .display { font-size: 16px; }
+  .btn { padding: 8px 12px; font-size: 8px; }
 }
