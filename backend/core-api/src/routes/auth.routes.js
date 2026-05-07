@@ -120,7 +120,18 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     const token = generateToken(user);
     res.status(201).json({ token, user });
   } catch (err) {
-    console.error('Register error:', err);
+    console.error('Register error:', err.code, err.sqlMessage || err.message);
+    // Typical prod misconfig: schema/roles not seeded → FK fails (1452) or missing table (1146).
+    if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(503).json({
+        error: 'Серверийн өгөгдлийн сангийн тохиргоо дутуу байна (roles/seed). Админд хандана уу.',
+      });
+    }
+    if (err.code === 'ER_NO_SUCH_TABLE') {
+      return res.status(503).json({
+        error: 'Өгөгдлийн сангийн schema суулгаагүй байна. Deploy дээр db init ажиллуулна уу.',
+      });
+    }
     res.status(500).json({ error: 'Бүртгэл амжилтгүй боллоо' });
   }
 });

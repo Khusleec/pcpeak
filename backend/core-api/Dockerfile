@@ -15,4 +15,5 @@ EXPOSE 4000
 HEALTHCHECK --interval=15s --timeout=5s --retries=5 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:4000/api/health || exit 1
 
-CMD ["node", "src/index.js"]
+# Apply schema + seeds + SQL migrations before listening (Railway MySQL starts empty).
+CMD ["sh", "-c", "node src/db/init.js && node src/db/migrate.js && node src/index.js"]
