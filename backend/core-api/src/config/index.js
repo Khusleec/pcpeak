@@ -54,9 +54,18 @@ module.exports = {
     secret: jwtSecret && String(jwtSecret).trim().length > 0 ? jwtSecret.trim() : 'dev-secret-change-me',
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   },
-  frontendUrl: (process.env.FRONTEND_URL || 'http://localhost:3000').trim().replace(/\/+$/, ''),
+  /** First entry used for OAuth redirects / payment return URLs */
+  frontendUrl: (() => {
+    const list = parseCommaList(process.env.FRONTEND_URL || 'http://localhost:3000');
+    return list[0] || 'http://localhost:3000';
+  })(),
+  /** All FRONTEND_URL values (comma-separated) are allowed CORS origins */
+  frontendOrigins: parseCommaList(process.env.FRONTEND_URL || 'http://localhost:3000'),
   /** Extra browser origins for CORS (comma-separated), e.g. Vercel preview URLs */
   corsExtraOrigins: parseCommaList(process.env.CORS_ORIGINS),
+  /** Allow any https://*.vercel.app origin (previews + production on vercel.app) */
+  corsAllowVercel:
+    process.env.CORS_ALLOW_VERCEL === 'true' || process.env.CORS_ALLOW_VERCEL === '1',
   // Prefer AI_*; OPENAI_* / legacy names still work via fallbacks below.
   ai: {
     apiKey: process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '',

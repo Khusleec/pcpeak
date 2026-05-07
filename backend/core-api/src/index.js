@@ -20,11 +20,12 @@ if (config.trustProxy) {
 }
 
 // ─── Security Middleware ────────────────────────────────────
-app.use(helmet());
-// Primary: FRONTEND_URL; optional: CORS_ORIGINS (comma-separated, e.g. Vercel + previews)
+// SPA on another origin (e.g. Vercel → Railway) needs CORP cross-origin on API responses.
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+// Primary: FRONTEND_URL (comma-separated); optional: CORS_ORIGINS; optional: CORS_ALLOW_VERCEL
 const allowedOrigins = new Set(
   [
-    config.frontendUrl,
+    ...config.frontendOrigins,
     ...config.corsExtraOrigins,
     'http://localhost:3000',
     'http://localhost:5173',
@@ -36,6 +37,12 @@ app.use(
     origin(origin, cb) {
       if (!origin) return cb(null, true); // curl, server-to-server
       if (allowedOrigins.has(origin)) return cb(null, true);
+      if (
+        config.corsAllowVercel &&
+        /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)
+      ) {
+        return cb(null, true);
+      }
       // Permit any localhost/127.0.0.1 port (covers browser previews & local tools).
       if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
         return cb(null, true);
