@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Navbar from './components/Navbar';
 import ChatWidget from './components/ChatWidget';
 
@@ -48,6 +49,7 @@ export default function App() {
         </Routes>
       </Suspense>
       <ChatWidget />
+      <SpeedInsights />
     </>
   );
 }
