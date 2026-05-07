@@ -29,3 +29,7 @@ clean:
 test:
 	@cd frontend && npm test
 	@cd backend/core-api && npm test
+
+# Локал MySQL dump (Git Bash / WSL): make db-dump-local
+db-dump-local:
+	@bash scripts/db-dump-local.sh
