@@ -47,6 +47,11 @@ app.use(
 );
 app.use(express.json({ limit: '256kb' }));
 
+// Root URL (e.g. Railway public domain with no path) — all real routes live under /api
+app.get('/', (_req, res) => {
+  res.json({ service: 'core-api', health: '/api/health' });
+});
+
 if (config.nodeEnv === 'production') {
   app.use(morgan('combined'));
 } else {
