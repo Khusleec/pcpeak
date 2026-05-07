@@ -2,7 +2,8 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 (async () => {
-  const c = await mysql.createConnection({ uri: process.env.DATABASE_URL });
+  const uri = (process.env.DATABASE_URL || process.env.MYSQL_URL || '').trim();
+  const c = await mysql.createConnection({ uri });
   await c.query('SET FOREIGN_KEY_CHECKS = 0');
   const [tables] = await c.query('SHOW TABLES');
   for (const row of tables) {

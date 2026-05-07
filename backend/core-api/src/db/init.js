@@ -5,8 +5,9 @@ require('dotenv').config();
 
 async function initDatabase() {
   // Use a dedicated multi-statement connection (not the wrapped pool)
+  const uri = (process.env.DATABASE_URL || process.env.MYSQL_URL || '').trim();
   const connection = await mysql.createConnection({
-    uri: process.env.DATABASE_URL,
+    uri,
     multipleStatements: true,
   });
 

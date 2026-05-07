@@ -2,8 +2,9 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 // ─── MySQL Pool ─────────────────────────────────────────────
+const dbUri = (process.env.DATABASE_URL || process.env.MYSQL_URL || '').trim();
 const rawPool = mysql.createPool({
-  uri: process.env.DATABASE_URL,
+  uri: dbUri || undefined,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

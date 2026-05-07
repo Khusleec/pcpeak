@@ -4,14 +4,15 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 async function migrate() {
-  if (!process.env.DATABASE_URL) {
-    console.error('DATABASE_URL is required');
+  const uri = (process.env.DATABASE_URL || process.env.MYSQL_URL || '').trim();
+  if (!uri) {
+    console.error('DATABASE_URL or MYSQL_URL is required');
     process.exit(1);
   }
 
   const migrationsDir = path.join(__dirname, '..', '..', 'db', 'migrations');
   const connection = await mysql.createConnection({
-    uri: process.env.DATABASE_URL,
+    uri,
     multipleStatements: true,
   });
 

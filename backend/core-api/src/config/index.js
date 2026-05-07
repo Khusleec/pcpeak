@@ -3,12 +3,15 @@ require('dotenv').config();
 const nodeEnv = process.env.NODE_ENV || 'development';
 const isProd = nodeEnv === 'production';
 
-const databaseUrl = (process.env.DATABASE_URL || '').trim();
+// Railway/MySQL: some setups expose MYSQL_URL on the plugin; app services usually set DATABASE_URL.
+const databaseUrl = (process.env.DATABASE_URL || process.env.MYSQL_URL || '').trim();
 const jwtSecret = process.env.JWT_SECRET;
 
 if (isProd) {
   if (!databaseUrl) {
-    throw new Error('DATABASE_URL must be set when NODE_ENV is production.');
+    throw new Error(
+      'DATABASE_URL or MYSQL_URL must be set when NODE_ENV is production.'
+    );
   }
   if (!jwtSecret || String(jwtSecret).trim().length < 32) {
     throw new Error('JWT_SECRET must be set with at least 32 characters when NODE_ENV is production.');
