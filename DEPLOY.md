@@ -111,7 +111,11 @@ Go to https://railway.app → sign in with GitHub → start trial ($5 free).
      FRONTEND_URL=https://${{ frontend.RAILWAY_PUBLIC_DOMAIN }}
      PAYMENTS_DEMO_MODE=true
      ```
-   - For **Google login (Firebase Auth)** set `REACT_APP_FIREBASE_*` on the frontend build and Firebase Admin on core-api (see `backend/core-api/.env.example` — `FIREBASE_SERVICE_ACCOUNT_PATH` or equivalent). In Firebase Console add your site domain under **Authentication → Settings → Authorized domains**.
+   - **Google нэвтрэлт (Firebase Auth)**  
+     - Frontend build env: бүх `REACT_APP_FIREBASE_*` (Firebase Console → Project settings → Web app config). См. `frontend/.env.example`.  
+     - core-api env: `FIREBASE_SERVICE_ACCOUNT_PATH` эсвэл `FIREBASE_SERVICE_ACCOUNT_JSON` / `_JSON_BASE64` / `GOOGLE_APPLICATION_CREDENTIALS`. См. `backend/core-api/.env.example`.  
+     - Firebase Console → **Authentication** → **Settings** → **Authorized domains**: өөрийн вэб домэйнүүдээ (localhost, Vercel URL г.м.) нэм.  
+   - **English:** Set `REACT_APP_FIREBASE_*` on the frontend build; Firebase Admin on core-api (`FIREBASE_SERVICE_ACCOUNT_PATH` or equivalent); add authorized domains under Authentication → Settings.
    - Settings → Networking → **Generate Domain**
 
    **agent-worker:**
@@ -133,6 +137,7 @@ Go to https://railway.app → sign in with GitHub → start trial ($5 free).
      REACT_APP_API_URL=https://${{ core-api.RAILWAY_PUBLIC_DOMAIN }}/api
      REACT_APP_GOOGLE_MAPS_API_KEY=<optional>
      ```
+     Firebase Google login: нэмэлтээр бүх `REACT_APP_FIREBASE_*`-ийг Firebase Web app config-оос тохируул (`frontend/.env.example` см).
    - Settings → Networking → **Generate Domain**
 
 3. Each push to `main` re-deploys.
@@ -158,7 +163,8 @@ If you specifically want the Vercel deploy that errored out:
 3. Framework Preset = **Create React App** (auto-detected)
 4. Add Environment Variable:
    - `REACT_APP_API_URL` = `https://<your-render-backend>.onrender.com/api`
-5. Redeploy.
+5. (Firebase Google sign-in) Нэмэлт: `REACT_APP_FIREBASE_*` — `frontend/.env.example`-т жагсаасан бүх түлхүүрийг Firebase Console-оос.
+6. Redeploy.
 
 ### Render (backend)
 Render has free Postgres but **no free MySQL**. Use **Aiven free MySQL**

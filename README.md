@@ -59,6 +59,18 @@ The launcher boots Docker Desktop if needed, brings up every container, waits on
 
 Created by the seed script on first boot. Check `backend/core-api/src/db/seed.js` for the exact admin email/password — change them in production.
 
+### Firebase-ээр Google нэвтрэлт (сонголтот)
+
+| Алхам | Юу хийх |
+| --- | --- |
+| **Вэб** | `REACT_APP_FIREBASE_*` — `frontend/.env` эсвэл Vercel/Railway build env. Утгуудыг [Firebase Console](https://console.firebase.google.com/) → *Project settings* → *Your apps* → Web аппаас хуулна. Жишээ: `frontend/.env.example`. |
+| **API** | `FIREBASE_SERVICE_ACCOUNT_PATH` эсвэл `FIREBASE_SERVICE_ACCOUNT_JSON` / `..._BASE64` / `GOOGLE_APPLICATION_CREDENTIALS` — service account JSON (**commit хийхгүй**). Жишээ: `backend/core-api/.env.example`. |
+| **Консол** | *Authentication* → *Settings* → **Authorized domains** — `localhost`, продакшн домэйноо (жишээ нь `xxx.vercel.app`) нэм. |
+
+Клиент Firebase Auth-ээр нэвтэрч ID token авна; API `POST /api/auth/firebase` түлхүүрээ шалгаж JWT өгнө.
+
+*(English: Configure web `REACT_APP_FIREBASE_*`, server Firebase Admin credentials, and authorized domains in Firebase Console.)*
+
 ## Common scripts
 
 ```bash
@@ -94,6 +106,8 @@ All knobs live in `.env`. Most useful:
 | `AGENT_RESPONSE_TIMEOUT_MS` | `30000` | core-api long-poll budget |
 | `AGENT_WORKER_POLL_INTERVAL_MS` | `1000` | how often the worker checks for new tasks |
 | `REACT_APP_GOOGLE_MAPS_API_KEY` | empty | Optional — offline map sim works without it |
+| `REACT_APP_FIREBASE_*` | empty | Optional — Google sign-in via Firebase; see Firebase section above |
+| Firebase Admin (`core-api`) | unset | Optional — verifies tokens for `POST /api/auth/firebase`; see `backend/core-api/.env.example` |
 
 ## Folder structure
 
@@ -203,6 +217,18 @@ The launcher boots Docker Desktop if needed, brings up every container, waits on
 
 Created by the seed script on first boot. Check `backend/core-api/src/db/seed.js` for the exact admin email/password — change them in production.
 
+### Firebase-ээр Google нэвтрэлт (сонголтот)
+
+| Алхам | Юу хийх |
+| --- | --- |
+| **Вэб** | `REACT_APP_FIREBASE_*` — `frontend/.env` эсвэл Vercel/Railway build env. Утгуудыг [Firebase Console](https://console.firebase.google.com/) → *Project settings* → *Your apps* → Web аппаас хуулна. Жишээ: `frontend/.env.example`. |
+| **API** | `FIREBASE_SERVICE_ACCOUNT_PATH` эсвэл `FIREBASE_SERVICE_ACCOUNT_JSON` / `..._BASE64` / `GOOGLE_APPLICATION_CREDENTIALS` — service account JSON (**commit хийхгүй**). Жишээ: `backend/core-api/.env.example`. |
+| **Консол** | *Authentication* → *Settings* → **Authorized domains** — `localhost`, продакшн домэйноо (жишээ нь `xxx.vercel.app`) нэм. |
+
+Клиент Firebase Auth-ээр нэвтэрч ID token авна; API `POST /api/auth/firebase` түлхүүрээ шалгаж JWT өгнө.
+
+*(English: Configure web `REACT_APP_FIREBASE_*`, server Firebase Admin credentials, and authorized domains in Firebase Console.)*
+
 ## Common scripts
 
 ```bash
@@ -238,6 +264,8 @@ All knobs live in `.env`. Most useful:
 | `AGENT_RESPONSE_TIMEOUT_MS` | `30000` | core-api long-poll budget |
 | `AGENT_WORKER_POLL_INTERVAL_MS` | `1000` | how often the worker checks for new tasks |
 | `REACT_APP_GOOGLE_MAPS_API_KEY` | empty | Optional — offline map sim works without it |
+| `REACT_APP_FIREBASE_*` | empty | Optional — Google sign-in via Firebase; see Firebase section above |
+| Firebase Admin (`core-api`) | unset | Optional — verifies tokens for `POST /api/auth/firebase`; see `backend/core-api/.env.example` |
 
 ## Folder structure
 
@@ -345,6 +373,18 @@ The launcher boots Docker Desktop if needed, brings up every container, waits on
 
 Created by the seed script on first boot. Check `backend/core-api/src/db/seed.js` for the exact admin email/password — change them in production.
 
+### Firebase-ээр Google нэвтрэлт (сонголтот)
+
+| Алхам | Юу хийх |
+| --- | --- |
+| **Вэб** | `REACT_APP_FIREBASE_*` — `frontend/.env` эсвэл Vercel/Railway build env. Утгуудыг [Firebase Console](https://console.firebase.google.com/) → *Project settings* → *Your apps* → Web аппаас хуулна. Жишээ: `frontend/.env.example`. |
+| **API** | `FIREBASE_SERVICE_ACCOUNT_PATH` эсвэл `FIREBASE_SERVICE_ACCOUNT_JSON` / `..._BASE64` / `GOOGLE_APPLICATION_CREDENTIALS` — service account JSON (**commit хийхгүй**). Жишээ: `backend/core-api/.env.example`. |
+| **Консол** | *Authentication* → *Settings* → **Authorized domains** — `localhost`, продакшн домэйноо (жишээ нь `xxx.vercel.app`) нэм. |
+
+Клиент Firebase Auth-ээр нэвтэрч ID token авна; API `POST /api/auth/firebase` түлхүүрээ шалгаж JWT өгнө.
+
+*(English: Configure web `REACT_APP_FIREBASE_*`, server Firebase Admin credentials, and authorized domains in Firebase Console.)*
+
 ## Common scripts
 
 ```bash
@@ -380,6 +420,8 @@ All knobs live in `.env`. Most useful:
 | `AGENT_RESPONSE_TIMEOUT_MS` | `30000` | core-api long-poll budget |
 | `AGENT_WORKER_POLL_INTERVAL_MS` | `1000` | how often the worker checks for new tasks |
 | `REACT_APP_GOOGLE_MAPS_API_KEY` | empty | Optional — offline map sim works without it |
+| `REACT_APP_FIREBASE_*` | empty | Optional — Google sign-in via Firebase; see Firebase section above |
+| Firebase Admin (`core-api`) | unset | Optional — verifies tokens for `POST /api/auth/firebase`; see `backend/core-api/.env.example` |
 
 ## Folder structure
 
@@ -487,6 +529,18 @@ The launcher boots Docker Desktop if needed, brings up every container, waits on
 
 Created by the seed script on first boot. Check `backend/core-api/src/db/seed.js` for the exact admin email/password — change them in production.
 
+### Firebase-ээр Google нэвтрэлт (сонголтот)
+
+| Алхам | Юу хийх |
+| --- | --- |
+| **Вэб** | `REACT_APP_FIREBASE_*` — `frontend/.env` эсвэл Vercel/Railway build env. Утгуудыг [Firebase Console](https://console.firebase.google.com/) → *Project settings* → *Your apps* → Web аппаас хуулна. Жишээ: `frontend/.env.example`. |
+| **API** | `FIREBASE_SERVICE_ACCOUNT_PATH` эсвэл `FIREBASE_SERVICE_ACCOUNT_JSON` / `..._BASE64` / `GOOGLE_APPLICATION_CREDENTIALS` — service account JSON (**commit хийхгүй**). Жишээ: `backend/core-api/.env.example`. |
+| **Консол** | *Authentication* → *Settings* → **Authorized domains** — `localhost`, продакшн домэйноо (жишээ нь `xxx.vercel.app`) нэм. |
+
+Клиент Firebase Auth-ээр нэвтэрч ID token авна; API `POST /api/auth/firebase` түлхүүрээ шалгаж JWT өгнө.
+
+*(English: Configure web `REACT_APP_FIREBASE_*`, server Firebase Admin credentials, and authorized domains in Firebase Console.)*
+
 ## Common scripts
 
 ```bash
@@ -522,6 +576,8 @@ All knobs live in `.env`. Most useful:
 | `AGENT_RESPONSE_TIMEOUT_MS` | `30000` | core-api long-poll budget |
 | `AGENT_WORKER_POLL_INTERVAL_MS` | `1000` | how often the worker checks for new tasks |
 | `REACT_APP_GOOGLE_MAPS_API_KEY` | empty | Optional — offline map sim works without it |
+| `REACT_APP_FIREBASE_*` | empty | Optional — Google sign-in via Firebase; see Firebase section above |
+| Firebase Admin (`core-api`) | unset | Optional — verifies tokens for `POST /api/auth/firebase`; see `backend/core-api/.env.example` |
 
 ## Folder structure
 
@@ -629,6 +685,18 @@ The launcher boots Docker Desktop if needed, brings up every container, waits on
 
 Created by the seed script on first boot. Check `backend/core-api/src/db/seed.js` for the exact admin email/password — change them in production.
 
+### Firebase-ээр Google нэвтрэлт (сонголтот)
+
+| Алхам | Юу хийх |
+| --- | --- |
+| **Вэб** | `REACT_APP_FIREBASE_*` — `frontend/.env` эсвэл Vercel/Railway build env. Утгуудыг [Firebase Console](https://console.firebase.google.com/) → *Project settings* → *Your apps* → Web аппаас хуулна. Жишээ: `frontend/.env.example`. |
+| **API** | `FIREBASE_SERVICE_ACCOUNT_PATH` эсвэл `FIREBASE_SERVICE_ACCOUNT_JSON` / `..._BASE64` / `GOOGLE_APPLICATION_CREDENTIALS` — service account JSON (**commit хийхгүй**). Жишээ: `backend/core-api/.env.example`. |
+| **Консол** | *Authentication* → *Settings* → **Authorized domains** — `localhost`, продакшн домэйноо (жишээ нь `xxx.vercel.app`) нэм. |
+
+Клиент Firebase Auth-ээр нэвтэрч ID token авна; API `POST /api/auth/firebase` түлхүүрээ шалгаж JWT өгнө.
+
+*(English: Configure web `REACT_APP_FIREBASE_*`, server Firebase Admin credentials, and authorized domains in Firebase Console.)*
+
 ## Common scripts
 
 ```bash
@@ -664,6 +732,8 @@ All knobs live in `.env`. Most useful:
 | `AGENT_RESPONSE_TIMEOUT_MS` | `30000` | core-api long-poll budget |
 | `AGENT_WORKER_POLL_INTERVAL_MS` | `1000` | how often the worker checks for new tasks |
 | `REACT_APP_GOOGLE_MAPS_API_KEY` | empty | Optional — offline map sim works without it |
+| `REACT_APP_FIREBASE_*` | empty | Optional — Google sign-in via Firebase; see Firebase section above |
+| Firebase Admin (`core-api`) | unset | Optional — verifies tokens for `POST /api/auth/firebase`; see `backend/core-api/.env.example` |
 
 ## Folder structure
 
@@ -771,6 +841,18 @@ The launcher boots Docker Desktop if needed, brings up every container, waits on
 
 Created by the seed script on first boot. Check `backend/core-api/src/db/seed.js` for the exact admin email/password — change them in production.
 
+### Firebase-ээр Google нэвтрэлт (сонголтот)
+
+| Алхам | Юу хийх |
+| --- | --- |
+| **Вэб** | `REACT_APP_FIREBASE_*` — `frontend/.env` эсвэл Vercel/Railway build env. Утгуудыг [Firebase Console](https://console.firebase.google.com/) → *Project settings* → *Your apps* → Web аппаас хуулна. Жишээ: `frontend/.env.example`. |
+| **API** | `FIREBASE_SERVICE_ACCOUNT_PATH` эсвэл `FIREBASE_SERVICE_ACCOUNT_JSON` / `..._BASE64` / `GOOGLE_APPLICATION_CREDENTIALS` — service account JSON (**commit хийхгүй**). Жишээ: `backend/core-api/.env.example`. |
+| **Консол** | *Authentication* → *Settings* → **Authorized domains** — `localhost`, продакшн домэйноо (жишээ нь `xxx.vercel.app`) нэм. |
+
+Клиент Firebase Auth-ээр нэвтэрч ID token авна; API `POST /api/auth/firebase` түлхүүрээ шалгаж JWT өгнө.
+
+*(English: Configure web `REACT_APP_FIREBASE_*`, server Firebase Admin credentials, and authorized domains in Firebase Console.)*
+
 ## Common scripts
 
 ```bash
@@ -806,6 +888,8 @@ All knobs live in `.env`. Most useful:
 | `AGENT_RESPONSE_TIMEOUT_MS` | `30000` | core-api long-poll budget |
 | `AGENT_WORKER_POLL_INTERVAL_MS` | `1000` | how often the worker checks for new tasks |
 | `REACT_APP_GOOGLE_MAPS_API_KEY` | empty | Optional — offline map sim works without it |
+| `REACT_APP_FIREBASE_*` | empty | Optional — Google sign-in via Firebase; see Firebase section above |
+| Firebase Admin (`core-api`) | unset | Optional — verifies tokens for `POST /api/auth/firebase`; see `backend/core-api/.env.example` |
 
 ## Folder structure
 
@@ -913,6 +997,18 @@ The launcher boots Docker Desktop if needed, brings up every container, waits on
 
 Created by the seed script on first boot. Check `backend/core-api/src/db/seed.js` for the exact admin email/password — change them in production.
 
+### Firebase-ээр Google нэвтрэлт (сонголтот)
+
+| Алхам | Юу хийх |
+| --- | --- |
+| **Вэб** | `REACT_APP_FIREBASE_*` — `frontend/.env` эсвэл Vercel/Railway build env. Утгуудыг [Firebase Console](https://console.firebase.google.com/) → *Project settings* → *Your apps* → Web аппаас хуулна. Жишээ: `frontend/.env.example`. |
+| **API** | `FIREBASE_SERVICE_ACCOUNT_PATH` эсвэл `FIREBASE_SERVICE_ACCOUNT_JSON` / `..._BASE64` / `GOOGLE_APPLICATION_CREDENTIALS` — service account JSON (**commit хийхгүй**). Жишээ: `backend/core-api/.env.example`. |
+| **Консол** | *Authentication* → *Settings* → **Authorized domains** — `localhost`, продакшн домэйноо (жишээ нь `xxx.vercel.app`) нэм. |
+
+Клиент Firebase Auth-ээр нэвтэрч ID token авна; API `POST /api/auth/firebase` түлхүүрээ шалгаж JWT өгнө.
+
+*(English: Configure web `REACT_APP_FIREBASE_*`, server Firebase Admin credentials, and authorized domains in Firebase Console.)*
+
 ## Common scripts
 
 ```bash
@@ -948,6 +1044,8 @@ All knobs live in `.env`. Most useful:
 | `AGENT_RESPONSE_TIMEOUT_MS` | `30000` | core-api long-poll budget |
 | `AGENT_WORKER_POLL_INTERVAL_MS` | `1000` | how often the worker checks for new tasks |
 | `REACT_APP_GOOGLE_MAPS_API_KEY` | empty | Optional — offline map sim works without it |
+| `REACT_APP_FIREBASE_*` | empty | Optional — Google sign-in via Firebase; see Firebase section above |
+| Firebase Admin (`core-api`) | unset | Optional — verifies tokens for `POST /api/auth/firebase`; see `backend/core-api/.env.example` |
 
 ## Folder structure
 
