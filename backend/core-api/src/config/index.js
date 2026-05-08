@@ -45,16 +45,11 @@ module.exports = {
   paymentsDemoMode,
   simulatePaymentAllowed,
   databaseUrl,
-  google: {
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackUrl: process.env.GOOGLE_CALLBACK_URL,
-  },
   jwt: {
     secret: jwtSecret && String(jwtSecret).trim().length > 0 ? jwtSecret.trim() : 'dev-secret-change-me',
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   },
-  /** First entry used for OAuth redirects / payment return URLs */
+  /** First FRONTEND_URL entry (payment return / email-style links) */
   frontendUrl: (() => {
     const list = parseCommaList(process.env.FRONTEND_URL || 'http://localhost:3000');
     return list[0] || 'http://localhost:3000';

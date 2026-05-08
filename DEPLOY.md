@@ -111,6 +111,7 @@ Go to https://railway.app → sign in with GitHub → start trial ($5 free).
      FRONTEND_URL=https://${{ frontend.RAILWAY_PUBLIC_DOMAIN }}
      PAYMENTS_DEMO_MODE=true
      ```
+   - For **Google login (Firebase Auth)** set `REACT_APP_FIREBASE_*` on the frontend build and Firebase Admin on core-api (see `backend/core-api/.env.example` — `FIREBASE_SERVICE_ACCOUNT_PATH` or equivalent). In Firebase Console add your site domain under **Authentication → Settings → Authorized domains**.
    - Settings → Networking → **Generate Domain**
 
    **agent-worker:**
@@ -173,7 +174,7 @@ Before going live:
 - [ ] `JWT_SECRET` is a fresh random 32+ char string
 - [ ] `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD` are strong (20+ chars)
 - [ ] `PAYMENTS_DEMO_MODE=false` if using real QPay credentials
-- [ ] `GOOGLE_CALLBACK_URL` matches your domain
+- [ ] Firebase: frontend `REACT_APP_FIREBASE_*` + core-api Admin credentials; authorized domains set
 - [ ] DNS A record points to server IP
 - [ ] HTTPS works (test: `curl https://rigup.yourdomain.com/api/health`)
 - [ ] Firewall allows ports 80, 443 only (close 3306, 4000, 5173, 8090)

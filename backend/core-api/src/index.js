@@ -5,7 +5,6 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const config = require('./config');
 const { isFirebaseAdminConfigured } = require('./services/firebaseAdmin');
-require('./config/passport');
 
 const authRoutes = require('./routes/auth.routes');
 const cafeRoutes = require('./routes/cafe.routes');
@@ -100,10 +99,6 @@ app.get('/api/config/public', (_req, res) => {
     firebaseAuthBackendReady: isFirebaseAdminConfigured(),
   });
 });
-
-// ─── Passport ───────────────────────────────────────────────
-const passport = require('passport');
-app.use(passport.initialize());
 
 // ─── Routes ─────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);

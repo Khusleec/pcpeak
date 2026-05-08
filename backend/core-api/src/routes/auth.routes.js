@@ -1,99 +1,15 @@
 const express = require('express');
-const crypto = require('crypto');
-const passport = require('passport');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const pool = require('../db/pool');
-const config = require('../config');
 const { generateToken, authenticateToken } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
-const { registerSchema, loginSchema, oauthExchangeSchema, firebaseIdTokenSchema } = require('../validators/auth.validator');
+const { registerSchema, loginSchema, firebaseIdTokenSchema } = require('../validators/auth.validator');
 const { verifyFirebaseIdToken, isFirebaseAdminConfigured } = require('../services/firebaseAdmin');
 
 const router = express.Router();
 
-// ─── Google OAuth ───────────────────────────────────────────
-router.get(
-  '/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
-
-router.get(
-  '/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: `${config.frontendUrl}/login?error=oauth_failed` }),
-  async (req, res) => {
-    try {
-      const code = crypto.randomBytes(32).toString('hex');
-      await pool.query(
-        `INSERT INTO oauth_exchange_codes (code, user_id, expires_at)
-         VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))`,
-        [code, req.user.id]
-      );
-      res.redirect(`${config.frontendUrl}/auth/callback?code=${encodeURIComponent(code)}`);
-    } catch (err) {
-      console.error('OAuth callback error:', err);
-      res.redirect(`${config.frontendUrl}/login?error=oauth_failed`);
-    }
-  }
-);
-
-// ─── Exchange OAuth code for JWT (avoid putting tokens in browser URL/history) ──
-router.post('/oauth/exchange', validate(oauthExchangeSchema), async (req, res) => {
-  const { code } = req.body;
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-    const found = await client.query(
-      `SELECT user_id FROM oauth_exchange_codes
-       WHERE code = ? AND used = 0 AND expires_at > NOW()
-       FOR UPDATE`,
-      [code]
-    );
-    if (found.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ error: 'Нэвтрэх код хүчингүй эсвэл хугацаа дууссан' });
-    }
-
-    const userId = found.rows[0].user_id;
-    await client.query('UPDATE oauth_exchange_codes SET used = 1 WHERE code = ?', [code]);
-    await client.query('COMMIT');
-
-    const userResult = await pool.query(
-      `SELECT u.id, u.email, u.display_name, u.avatar_url, r.name AS role
-       FROM users u JOIN roles r ON u.role_id = r.id
-       WHERE u.id = ? AND u.is_active = 1`,
-      [userId]
-    );
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Хэрэглэгч олдсонгүй' });
-    }
-
-    const u = userResult.rows[0];
-    const token = generateToken(u);
-    res.json({
-      token,
-      user: {
-        id: u.id,
-        email: u.email,
-        display_name: u.display_name,
-        avatar_url: u.avatar_url,
-        role: u.role,
-      },
-    });
-  } catch (err) {
-    try {
-      await client.query('ROLLBACK');
-    } catch {
-      /* noop */
-    }
-    console.error('OAuth exchange error:', err);
-    res.status(500).json({ error: 'Нэвтрэхэд алдаа гарлаа' });
-  } finally {
-    client.release();
-  }
-});
-
-// ─── Firebase Google sign-in (client SDK → ID token → JWT) ──
+// ─── Firebase Auth (Google via client SDK → ID token → JWT) ──
 router.post('/firebase', validate(firebaseIdTokenSchema), async (req, res) => {
   if (!isFirebaseAdminConfigured()) {
     return res.status(503).json({

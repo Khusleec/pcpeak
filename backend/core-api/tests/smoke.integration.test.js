@@ -16,7 +16,7 @@ afterAll(async () => {
   await pool.end().catch(() => {});
 });
 
-describe('integration: auth / oauth / bookings', () => {
+describe('integration: auth / bookings', () => {
   let token;
   let userId;
 
@@ -40,20 +40,6 @@ describe('integration: auth / oauth / bookings', () => {
       .send({ email, password: body.password })
       .expect(200);
     expect(login.body.token).toBeDefined();
-  });
-
-  test('OAuth code exchange yields JWT without token in redirect URL', async () => {
-    expect(token).toBeTruthy();
-    const code = crypto.randomBytes(32).toString('hex');
-    await pool.query(
-      `INSERT INTO oauth_exchange_codes (code, user_id, expires_at)
-       VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))`,
-      [code, userId]
-    );
-
-    const res = await request(app).post('/api/auth/oauth/exchange').send({ code }).expect(200);
-    expect(res.body.token).toBeDefined();
-    expect(res.body.user.email).toContain('@example.test');
   });
 
   test('create booking (seeded PCs)', async () => {
