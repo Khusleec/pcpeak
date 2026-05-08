@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const config = require('./config');
-const { isFirebaseAdminConfigured } = require('./services/firebaseAdmin');
+const { isFirebaseAdminConfigured, peekFirebaseServiceAccountProjectId } = require('./services/firebaseAdmin');
 
 const authRoutes = require('./routes/auth.routes');
 const cafeRoutes = require('./routes/cafe.routes');
@@ -102,6 +102,8 @@ app.get('/api/config/public', (_req, res) => {
     simulatePaymentAllowed: Boolean(config.simulatePaymentAllowed),
     /** True when core-api can verify Firebase ID tokens (service account configured). */
     firebaseAuthBackendReady: isFirebaseAdminConfigured(),
+    /** Firebase `project_id` from service-account JSON — compare to REACT_APP_FIREBASE_PROJECT_ID. */
+    firebaseAdminProjectId: peekFirebaseServiceAccountProjectId(),
   });
 });
 

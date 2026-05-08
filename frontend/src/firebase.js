@@ -15,6 +15,25 @@ function firebaseConfigFromEnv() {
 }
 
 /**
+ * ID токены `aud` (зарчмын дагуу Firebase project id) — шалгалтгүй decode, зөвхөн алдаа тайлбарт.
+ */
+export function peekIdTokenProjectIdUnsafe(idToken) {
+  if (!idToken || typeof idToken !== 'string') return null;
+  try {
+    const seg = idToken.split('.')[1];
+    if (!seg) return null;
+    const normalized = seg.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = '='.repeat((4 - (normalized.length % 4)) % 4);
+    const json = atob(normalized + padding);
+    const payload = JSON.parse(json);
+    const aud = payload?.aud;
+    return aud ? String(aud).trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Single Firebase app instance, or null if env is not configured.
  * Web API keys are not secret; still keep them in env so builds stay flexible.
  */
@@ -58,8 +77,16 @@ export async function completeGoogleRedirectSignIn(apiClient) {
   const result = await getRedirectResult(auth);
   if (!result?.user) return null;
   const idToken = await result.user.getIdToken(true);
-  const { data } = await apiClient.post('/auth/firebase', { idToken });
-  return data;
+  try {
+    const { data } = await apiClient.post('/auth/firebase', { idToken });
+    return data;
+  } catch (err) {
+    const aud = peekIdTokenProjectIdUnsafe(idToken);
+    if (err?.response?.data && aud) {
+      err.response.data.firebaseIdTokenAudience = aud;
+    }
+    throw err;
+  }
 }
 
 /** Clear Firebase Auth session (call on app logout). */

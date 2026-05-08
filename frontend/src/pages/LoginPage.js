@@ -13,12 +13,22 @@ function loginErrorFromQuery(code) {
   return '';
 }
 
+function messageFromFirebaseAuthError(err, fallback) {
+  const d = err?.response?.data;
+  if (!d) return err?.message || fallback;
+  let msg = d.error || fallback;
+  if (d.firebaseCode) msg += ` (${d.firebaseCode})`;
+  if (d.firebaseIdTokenAudience) msg += ` Токен төсөл (aud): ${d.firebaseIdTokenAudience}.`;
+  return msg;
+}
+
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [error, setError] = useState('');
   const [firebaseBackendReady, setFirebaseBackendReady] = useState(false);
+  const [firebaseProjectHint, setFirebaseProjectHint] = useState('');
   const [firebaseLoading, setFirebaseLoading] = useState(false);
   const [redirectBusy, setRedirectBusy] = useState(true);
 
@@ -37,7 +47,7 @@ export default function LoginPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err.response?.data?.error || err.message || 'НЭВТРЭХ АМЖИЛТГҮЙ БОЛЛОО');
+          setError(messageFromFirebaseAuthError(err, 'НЭВТРЭХ АМЖИЛТГҮЙ БОЛЛОО'));
         }
       } finally {
         if (!cancelled) setRedirectBusy(false);
@@ -64,7 +74,18 @@ export default function LoginPage() {
     (async () => {
       try {
         const { data } = await api.get('/config/public');
-        if (!cancelled) setFirebaseBackendReady(Boolean(data.firebaseAuthBackendReady));
+        if (!cancelled) {
+          setFirebaseBackendReady(Boolean(data.firebaseAuthBackendReady));
+          const web = (process.env.REACT_APP_FIREBASE_PROJECT_ID || '').trim();
+          const admin = String(data.firebaseAdminProjectId || '').trim();
+          if (web && admin && web !== admin) {
+            setFirebaseProjectHint(
+              `Vercel дээрх вэбийн төсөл (${web}) ба Railway API service account-ийн төсөл (${admin}) таарахгүй байна. Аль хоёрын Firebase project_id ижил байх ёстой.`
+            );
+          } else {
+            setFirebaseProjectHint('');
+          }
+        }
       } catch {
         if (!cancelled) setFirebaseBackendReady(false);
       }
@@ -106,6 +127,20 @@ export default function LoginPage() {
             &gt; ШИФРЛЭЛТ :: TLS_1.3
           </div>
         </div>
+
+        {firebaseProjectHint && (
+          <div
+            className="error-box"
+            style={{
+              marginBottom: 16,
+              borderColor: 'rgba(234, 179, 8, 0.55)',
+              background: 'rgba(234, 179, 8, 0.08)',
+              color: 'var(--text)',
+            }}
+          >
+            <AlertOctagon size={11} /> {firebaseProjectHint}
+          </div>
+        )}
 
         {error && (
           <div className="error-box" style={{ marginBottom: 16 }}>

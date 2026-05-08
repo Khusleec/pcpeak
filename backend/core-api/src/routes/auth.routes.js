@@ -35,7 +35,7 @@ router.post('/firebase', validate(firebaseIdTokenSchema), async (req, res) => {
       userMsg =
         'Вэбийн Firebase (REACT_APP_FIREBASE_PROJECT_ID) ба серверийн service account JSON нэг ижил Firebase төсөлд байх ёстой. Vercel болон Railway утгуудыг шалгана уу.';
     }
-    return res.status(401).json({ error: userMsg });
+    return res.status(401).json({ error: userMsg, firebaseCode: code || undefined });
   }
 
   if (!decoded.email) {
