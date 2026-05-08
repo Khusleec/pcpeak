@@ -51,8 +51,8 @@ export async function signInWithGoogleFirebaseAndGetIdToken() {
 }
 
 /**
- * Google popup → Firebase ID token → app JWT (`POST /api/auth/firebase`).
- * @param {import('axios').AxiosInstance} apiClient axios instance with baseURL to core-api
+ * Google popup → Firebase UID-ийн **ID token** автоматаар энд авна.
+ * Гараар token оруулах input байхгүй: `POST /api/auth/firebase` body `{ idToken }`.
  */
 export async function signInWithGoogleAndExchangeForAppJwt(apiClient) {
   const idToken = await signInWithGoogleFirebaseAndGetIdToken();

@@ -21,8 +21,21 @@ router.post('/firebase', validate(firebaseIdTokenSchema), async (req, res) => {
   try {
     decoded = await verifyFirebaseIdToken(req.body.idToken);
   } catch (err) {
-    console.error('Firebase ID token verify:', err.message || err);
-    return res.status(401).json({ error: 'Firebase токен хүчингүй эсвэл хугацаа дууссан' });
+    const code = err?.code || '';
+    const detail = String(err?.message || '');
+    console.error('[auth/firebase] verifyIdToken:', code || '(no code)', detail || err);
+    let userMsg = 'Firebase токен хүчингүй эсвэл хугацаа дууссан';
+    if (code === 'auth/id-token-expired') {
+      userMsg = 'Токены хугацаа дууссан — дахин Google-аар оролдоно уу.';
+    } else if (
+      code === 'auth/invalid-id-token' ||
+      code === 'auth/argument-error' ||
+      /audience|issuer|project|incorrect|match/i.test(detail)
+    ) {
+      userMsg =
+        'Вэбийн Firebase (REACT_APP_FIREBASE_PROJECT_ID) ба серверийн service account JSON нэг ижил Firebase төсөлд байх ёстой. Vercel болон Railway утгуудыг шалгана уу.';
+    }
+    return res.status(401).json({ error: userMsg });
   }
 
   if (!decoded.email) {
