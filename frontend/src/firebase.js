@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAnalytics, isSupported } from 'firebase/analytics';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
 
 function firebaseConfigFromEnv() {
   return {
@@ -36,26 +36,28 @@ export function getFirebaseAuth() {
 }
 
 /**
- * Google sign-in via Firebase client SDK. Returns an ID token for
- * POST /api/auth/firebase (core-api verifies with Firebase Admin).
+ * Full-page redirect flow (avoids signInWithPopup + Cross-Origin-Opener-Policy issues on Vercel / strict headers).
  */
-export async function signInWithGoogleFirebaseAndGetIdToken() {
+export async function startSignInWithGoogleRedirect() {
   const auth = getFirebaseAuth();
   if (!auth) {
     throw new Error('Firebase web config missing (REACT_APP_FIREBASE_*).');
   }
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-  const result = await signInWithPopup(auth, provider);
-  return result.user.getIdToken(true);
+  await signInWithRedirect(auth, provider);
 }
 
 /**
- * Google popup → Firebase UID-ийн **ID token** автоматаар энд авна.
- * Гараар token оруулах input байхгүй: `POST /api/auth/firebase` body `{ idToken }`.
+ * After returning from Google/Firebase redirect, exchange ID token for app JWT.
+ * No-op (resolves null) if this load was not finishing a redirect sign-in.
  */
-export async function signInWithGoogleAndExchangeForAppJwt(apiClient) {
-  const idToken = await signInWithGoogleFirebaseAndGetIdToken();
+export async function completeGoogleRedirectSignIn(apiClient) {
+  const auth = getFirebaseAuth();
+  if (!auth) return null;
+  const result = await getRedirectResult(auth);
+  if (!result?.user) return null;
+  const idToken = await result.user.getIdToken(true);
   const { data } = await apiClient.post('/auth/firebase', { idToken });
   return data;
 }

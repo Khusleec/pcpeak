@@ -37,16 +37,16 @@ export function AuthProvider({ children }) {
     fetchUser();
   }, [fetchUser]);
 
-  const login = (token, userData) => {
+  const login = useCallback((token, userData) => {
     localStorage.setItem('token', token);
     setUser(userData);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('token');
     setUser(null);
     signOutFirebase().catch(() => {});
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, fetchUser }}>
