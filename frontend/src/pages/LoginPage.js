@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { ArrowRight, AlertOctagon } from 'lucide-react';
+import { AlertOctagon } from 'lucide-react';
 
-import { getFirebaseApp, signInWithGoogleFirebaseAndGetIdToken } from '../firebase';
+import { getFirebaseApp, signInWithGoogleAndExchangeForAppJwt } from '../firebase';
 
 function loginErrorFromQuery(code) {
   if (code === 'oauth_failed' || code === 'google_oauth_misconfigured') {
-    return 'Google нэвтрэлт одоо зөвхөн Firebase-ээр. Нэвтрэх товчийг ашиглана уу.';
+    return 'Google нэвтрэлт зөвхөн Firebase-ээр. Доорх товчийг ашиглана уу.';
   }
   return '';
 }
@@ -17,10 +17,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const [firebaseBackendReady, setFirebaseBackendReady] = useState(false);
   const [firebaseLoading, setFirebaseLoading] = useState(false);
 
@@ -54,27 +51,11 @@ export default function LoginPage() {
 
   const firebaseGoogleEnabled = hasFirebaseWeb && firebaseBackendReady;
 
-  const handleLocalLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      const { data } = await api.post('/auth/login', { email, password });
-      login(data.token, data.user);
-      navigate('/');
-    } catch (err) {
-      setError(err.response?.data?.error || 'НЭВТРЭХ АМЖИЛТГҮЙ БОЛЛОО');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleFirebaseGoogle = async () => {
     setError('');
     setFirebaseLoading(true);
     try {
-      const idToken = await signInWithGoogleFirebaseAndGetIdToken();
-      const { data } = await api.post('/auth/firebase', { idToken });
+      const data = await signInWithGoogleAndExchangeForAppJwt(api);
       login(data.token, data.user);
       navigate('/');
     } catch (err) {
@@ -95,12 +76,12 @@ export default function LoginPage() {
         <div className="login-header">
           <div className="login-eyebrow">
             <span className="dot alert" />
-            <span>// НЭВТРЭХ_ПРОТОКОЛ::v1.0</span>
+            <span>// НЭВТРЭХ :: FIREBASE_AUTH</span>
           </div>
           <h1>СИСТЕМД<br /><span style={{ color: 'var(--red)' }}>НЭВТРЭХ</span></h1>
           <div className="login-meta">
-            &gt; АЮУЛГҮЙ_СУВАГ :: МЭДЭЭЛЭЛ_ХҮЛЭЭГДЭЖ_БАЙНА<br />
-            &gt; ШИФРЛЭЛТ :: TLS_1.3 / RSA_4096
+            &gt; GOOGLE_НЭВТРЭЛТ :: FIREBASE_ID_TOKEN → API_JWT<br />
+            &gt; ШИФРЛЭЛТ :: TLS_1.3
           </div>
         </div>
 
@@ -124,35 +105,17 @@ export default function LoginPage() {
               <path fill="#000" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
               <path fill="#000" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
-            {firebaseLoading ? 'ИЛГЭЭЖ БАЙНА…' : 'GOOGLE-ААР НЭВТРЭХ (FIREBASE)'}
+            {firebaseLoading ? 'ИЛГЭЭЖ БАЙНА…' : 'GOOGLE-ААР НЭВТРЭХ'}
           </button>
         ) : (
           <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '0 0 8px', lineHeight: 1.45 }}>
-            Google нэвтрэлт Firebase-ээр: вэб аппонд <span className="mono">REACT_APP_FIREBASE_*</span> тохируулж,
-            серверт <span className="mono">FIREBASE_SERVICE_ACCOUNT_PATH</span> эсвэл ижил төстэй Firebase Admin түлхүүр нэмнэ үү (зөвшөөрөгдсөн домэйнээ Firebase консолоос нэмнэ).
+            Зөвхөн Firebase Auth. Вэб: <span className="mono">REACT_APP_FIREBASE_*</span>, API: Firebase Admin түлхүүр; Firebase консолоос Authorized domains тохируулна уу.
           </p>
         )}
 
-        <div className="login-divider">// ЭСВЭЛ_И-МЭЙЛЭЭР</div>
-
-        <form onSubmit={handleLocalLogin}>
-          <div className="form-group">
-            <label>// И-МЭЙЛ</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="нэр@жишээ.mn" required />
-          </div>
-
-          <div className="form-group">
-            <label>// НУУЦ ҮГ</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
-          </div>
-
-          <button className="btn btn-primary" style={{ width: '100%' }} type="submit" disabled={loading}>
-            {loading ? <>ИЛГЭЭЖ БАЙНА <span className="blink">▮</span></> : <>НЭВТРЭХ <ArrowRight size={11} /></>}
-          </button>
-        </form>
-
-        <p style={{ marginTop: 20, color: 'var(--text-muted)', textAlign: 'center' }}>
-          БҮРТГҮҮЛЭЭГҮЙ ЮУ? <Link to="/register" style={{ color: 'var(--red)' }}>// БҮРТГҮҮЛЭХ</Link>
+        <p style={{ marginTop: 20, color: 'var(--text-muted)', fontSize: 12, textAlign: 'center', lineHeight: 1.5 }}>
+          Шинэ хэрэглэгч үү? Эхний Google нэвтрэлтээр автоматаар бүртгэгдэнэ.{' '}
+          <Link to="/register" style={{ color: 'var(--red)' }}>Бүртгэлийн хуудас</Link>
         </p>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
+import { signOutFirebase } from '../firebase';
 
 const AuthContext = createContext(null);
 
@@ -44,6 +45,7 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    signOutFirebase().catch(() => {});
   };
 
   return (

@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAnalytics, isSupported } from 'firebase/analytics';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 
 function firebaseConfigFromEnv() {
   return {
@@ -48,6 +48,23 @@ export async function signInWithGoogleFirebaseAndGetIdToken() {
   provider.setCustomParameters({ prompt: 'select_account' });
   const result = await signInWithPopup(auth, provider);
   return result.user.getIdToken(true);
+}
+
+/**
+ * Google popup → Firebase ID token → app JWT (`POST /api/auth/firebase`).
+ * @param {import('axios').AxiosInstance} apiClient axios instance with baseURL to core-api
+ */
+export async function signInWithGoogleAndExchangeForAppJwt(apiClient) {
+  const idToken = await signInWithGoogleFirebaseAndGetIdToken();
+  const { data } = await apiClient.post('/auth/firebase', { idToken });
+  return data;
+}
+
+/** Clear Firebase Auth session (call on app logout). */
+export async function signOutFirebase() {
+  const auth = getFirebaseAuth();
+  if (!auth) return;
+  await signOut(auth);
 }
 
 /**
