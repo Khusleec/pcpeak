@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Power, Map, Database, Terminal } from 'lucide-react';
+import { Power, Map, Database, Terminal, Trophy } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -13,7 +13,10 @@ export default function Navbar() {
     navigate('/login');
   };
 
-  const isActive = (p) => location.pathname === p ? 'active' : '';
+  const isActive = (p) => {
+    if (p === '/tournaments') return location.pathname.startsWith('/tournaments') ? 'active' : '';
+    return location.pathname === p ? 'active' : '';
+  };
 
   return (
     <nav className="navbar">
@@ -26,6 +29,7 @@ export default function Navbar() {
 
         <div className="navbar-links">
           <Link to="/map" className={isActive('/map')}><Map size={11} /> САЛБАРУУД</Link>
+          <Link to="/tournaments" className={isActive('/tournaments')}><Trophy size={11} /> ТЭМЦЭЭН</Link>
           {user && <Link to="/bookings" className={isActive('/bookings')}><Database size={11} /> ЗАХИАЛГА</Link>}
         </div>
 

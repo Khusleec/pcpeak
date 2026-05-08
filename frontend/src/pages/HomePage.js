@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Map, Terminal, Database } from 'lucide-react';
+import { ArrowRight, Map, Terminal, Database, Trophy } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const CafeMap = lazy(() => import('../components/CafeMap'));
@@ -36,6 +36,9 @@ export default function HomePage() {
           <div style={{ display: 'flex', gap: 0, flexWrap: 'wrap' }}>
             <Link to="/map" className="btn btn-primary">
               <Map size={11} /> САЛБАРУУДЫГ ҮЗЭХ <ArrowRight size={11} />
+            </Link>
+            <Link to="/tournaments" className="btn btn-ghost" style={{ marginLeft: -1 }}>
+              <Trophy size={11} /> ТЭМЦЭЭН
             </Link>
             {user ? (
               <Link to="/bookings" className="btn btn-ghost" style={{ marginLeft: -1 }}>

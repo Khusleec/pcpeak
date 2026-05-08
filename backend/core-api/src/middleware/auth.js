@@ -21,6 +21,19 @@ function authenticateToken(req, res, next) {
   }
 }
 
+/** Sets req.user when Bearer token is valid; otherwise continues without req.user. */
+function optionalAuthenticateToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return next();
+  try {
+    req.user = jwt.verify(token, config.jwt.secret);
+  } catch {
+    req.user = null;
+  }
+  next();
+}
+
 // RBAC middleware factory
 function authorize(...allowedRoles) {
   return async (req, res, next) => {
@@ -59,4 +72,4 @@ function generateToken(user) {
   );
 }
 
-module.exports = { authenticateToken, authorize, generateToken };
+module.exports = { authenticateToken, optionalAuthenticateToken, authorize, generateToken };

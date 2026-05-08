@@ -89,4 +89,9 @@ describe('integration: auth / oauth / bookings', () => {
     expect(book.body.booking).toBeDefined();
     expect(book.body.booking.id).toBeDefined();
   });
+
+  test('list tournaments (public)', async () => {
+    const res = await request(app).get('/api/tournaments').expect(200);
+    expect(Array.isArray(res.body)).toBe(true);
+  });
 });

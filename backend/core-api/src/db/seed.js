@@ -169,6 +169,64 @@ async function seed() {
     console.log(`  TOTAL ZAAL NODES: ${totalZaal}`);
     console.log(`  TOTAL VIP NODES:  ${totalVip}`);
     console.log(`  TOTAL NETWORK:    ${totalZaal + totalVip} nodes\n`);
+
+    const tc = await pool.query('SELECT id FROM cafes ORDER BY id ASC LIMIT 1');
+    const venueId = tc.rows[0]?.id;
+    if (venueId) {
+      const tExist = await pool.query('SELECT id FROM tournaments LIMIT 1');
+      if (tExist.rows.length === 0) {
+        const fmt = (d) => d.toISOString().slice(0, 19).replace('T', ' ');
+        const s1 = new Date(Date.now() + 10 * 86400000);
+        const e1 = new Date(s1.getTime() + 5 * 3600000);
+        const reg1 = new Date(s1.getTime() - 2 * 3600000);
+        const s2 = new Date(Date.now() + 24 * 86400000);
+        const e2 = new Date(s2.getTime() + 8 * 3600000);
+        const reg2 = new Date(s2.getTime() - 3600000);
+        const s3 = new Date(Date.now() + 45 * 86400000);
+        const e3 = new Date(s3.getTime() + 10 * 3600000);
+        const reg3 = new Date(s3.getTime() - 24 * 3600000);
+        await pool.query(
+          `INSERT INTO tournaments (title, description, game_title, cafe_id, starts_at, ends_at, registration_deadline, max_participants, prize_pool_mnt, status)
+           VALUES
+           (?, ?, ?, ?, ?, ?, ?, ?, ?, 'registration'),
+           (?, ?, ?, ?, ?, ?, ?, ?, ?, 'registration'),
+           (?, ?, ?, ?, ?, ?, ?, ?, ?, 'registration')`,
+          [
+            'MGL OPEN — Valorant (Season 1)',
+            'Сүлжээний нээлтийн цуврал. 5v5 эсвэл түвшин тогтоосон формат.',
+            'Valorant',
+            venueId,
+            fmt(s1),
+            fmt(e1),
+            fmt(reg1),
+            32,
+            5000000,
+            'CS2 5v5 — Хан-Уул',
+            'Хан-Уул салбарт LAN. Шууд элиминаци.',
+            'Counter-Strike 2',
+            venueId,
+            fmt(s2),
+            fmt(e2),
+            fmt(reg2),
+            16,
+            3000000,
+            'League of Legends — Дээд лиг (үзүүлэн)',
+            'Тоглолтын хуваарь урьдчилсан. Үзэгчийн суудал тусдаа.',
+            'League of Legends',
+            venueId,
+            fmt(s3),
+            fmt(e3),
+            fmt(reg3),
+            8,
+            2000000,
+          ]
+        );
+        console.log('  ◆ Sample tournaments :: 3 rows inserted');
+      } else {
+        console.log('  ◆ Tournaments :: already present — skip sample insert');
+      }
+    }
+
     console.log('✓ Database seeded successfully.');
   } catch (err) {
     console.error('✗ Seed failed:', err.message);

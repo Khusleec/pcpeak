@@ -12,6 +12,7 @@ const pcRoutes = require('./routes/pc.routes');
 const bookingRoutes = require('./routes/booking.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const agentRoutes = require('./routes/agent.routes');
+const tournamentRoutes = require('./routes/tournament.routes');
 
 const app = express();
 
@@ -106,6 +107,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/cafes', cafeRoutes);
 app.use('/api/pcs', pcRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/tournaments', tournamentRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/agent', agentRoutes);
 
