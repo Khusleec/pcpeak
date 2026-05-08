@@ -7,7 +7,8 @@ const pool = require('../db/pool');
 const config = require('../config');
 const { generateToken, authenticateToken } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
-const { registerSchema, loginSchema, oauthExchangeSchema } = require('../validators/auth.validator');
+const { registerSchema, loginSchema, oauthExchangeSchema, firebaseIdTokenSchema } = require('../validators/auth.validator');
+const { verifyFirebaseIdToken, isFirebaseAdminConfigured } = require('../services/firebaseAdmin');
 
 const router = express.Router();
 
@@ -92,6 +93,111 @@ router.post('/oauth/exchange', validate(oauthExchangeSchema), async (req, res) =
   }
 });
 
+// ─── Firebase Google sign-in (client SDK → ID token → JWT) ──
+router.post('/firebase', validate(firebaseIdTokenSchema), async (req, res) => {
+  if (!isFirebaseAdminConfigured()) {
+    return res.status(503).json({
+      error: 'Firebase серверийн тохиргоо дутуу. FIREBASE_SERVICE_ACCOUNT_PATH эсвэл GOOGLE_APPLICATION_CREDENTIALS тохируулна уу.',
+    });
+  }
+
+  let decoded;
+  try {
+    decoded = await verifyFirebaseIdToken(req.body.idToken);
+  } catch (err) {
+    console.error('Firebase ID token verify:', err.message || err);
+    return res.status(401).json({ error: 'Firebase токен хүчингүй эсвэл хугацаа дууссан' });
+  }
+
+  if (!decoded.email) {
+    return res.status(400).json({ error: 'Имэйл Firebase токенд байхгүй байна' });
+  }
+  if (decoded.email_verified === false) {
+    return res.status(400).json({ error: 'Баталгаажсан имэйл шаардлагатай' });
+  }
+
+  const email = String(decoded.email).toLowerCase().trim();
+  const uid = decoded.uid;
+  const displayName = (decoded.name && String(decoded.name).trim()) || email.split('@')[0];
+  const picture = decoded.picture ? String(decoded.picture).trim() : null;
+
+  try {
+    let found = await pool.query('SELECT * FROM users WHERE firebase_uid = ?', [uid]);
+    if (found.rows.length === 0) {
+      found = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    }
+
+    if (found.rows.length > 0) {
+      const u = found.rows[0];
+      if (u.firebase_uid && String(u.firebase_uid) !== String(uid)) {
+        return res.status(409).json({ error: 'Энэ имэйл өөр Firebase бүртгэлтэй байна' });
+      }
+      await pool.query(
+        `UPDATE users SET firebase_uid = ?, display_name = ?, avatar_url = COALESCE(?, avatar_url)
+         WHERE id = ?`,
+        [uid, displayName, picture, u.id]
+      );
+      const fresh = await pool.query(
+        `SELECT u.id, u.email, u.display_name, u.avatar_url, r.name AS role
+         FROM users u JOIN roles r ON u.role_id = r.id
+         WHERE u.id = ? AND u.is_active = 1`,
+        [u.id]
+      );
+      if (fresh.rows.length === 0) {
+        return res.status(403).json({ error: 'Данс идэвхгүй' });
+      }
+      const f = fresh.rows[0];
+      const token = generateToken(f);
+      return res.json({
+        token,
+        user: {
+          id: f.id,
+          email: f.email,
+          display_name: f.display_name,
+          avatar_url: f.avatar_url,
+          role: f.role,
+        },
+      });
+    }
+
+    const newId = uuidv4();
+    await pool.query(
+      `INSERT INTO users (id, email, display_name, avatar_url, firebase_uid, role_id)
+       VALUES (?, ?, ?, ?, ?, 3)`,
+      [newId, email, displayName, picture, uid]
+    );
+    const fresh = await pool.query(
+      `SELECT u.id, u.email, u.display_name, u.avatar_url, r.name AS role
+       FROM users u JOIN roles r ON u.role_id = r.id
+       WHERE u.id = ?`,
+      [newId]
+    );
+    const f = fresh.rows[0];
+    const token = generateToken(f);
+    return res.status(201).json({
+      token,
+      user: {
+        id: f.id,
+        email: f.email,
+        display_name: f.display_name,
+        avatar_url: f.avatar_url,
+        role: f.role,
+      },
+    });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'Өгөгдөл давхардлаа' });
+    }
+    if (err.code === 'ER_BAD_FIELD_ERROR' || (err.message && err.message.includes('firebase_uid'))) {
+      return res.status(503).json({
+        error: 'Өгөгдлийн санд firebase_uid багана байхгүй. DB migration ажиллуулна уу (007_users_firebase_uid.sql).',
+      });
+    }
+    console.error('Firebase auth upsert:', err);
+    res.status(500).json({ error: 'Нэвтрэхэд алдаа гарлаа' });
+  }
+});
+
 // ─── Local Register ─────────────────────────────────────────
 router.post('/register', validate(registerSchema), async (req, res) => {
   try {
@@ -154,7 +260,7 @@ router.post('/login', validate(loginSchema), async (req, res) => {
 
     const user = result.rows[0];
     if (!user.password_hash) {
-      return res.status(401).json({ error: 'Энэ хаяг Google-ээр нэвтэрдэг' });
+      return res.status(401).json({ error: 'Энэ хаяг Google эсвэл Firebase-ээр нэвтэрдэг' });
     }
 
     const valid = await bcrypt.compare(password, user.password_hash);

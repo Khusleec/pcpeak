@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAnalytics, isSupported } from 'firebase/analytics';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 function firebaseConfigFromEnv() {
   return {
@@ -26,6 +27,27 @@ export function getFirebaseApp() {
     return getApp();
   }
   return initializeApp(cfg);
+}
+
+/** Firebase Auth instance, or null if web SDK env is incomplete. */
+export function getFirebaseAuth() {
+  const app = getFirebaseApp();
+  return app ? getAuth(app) : null;
+}
+
+/**
+ * Google sign-in via Firebase client SDK. Returns an ID token for
+ * POST /api/auth/firebase (core-api verifies with Firebase Admin).
+ */
+export async function signInWithGoogleFirebaseAndGetIdToken() {
+  const auth = getFirebaseAuth();
+  if (!auth) {
+    throw new Error('Firebase web config missing (REACT_APP_FIREBASE_*).');
+  }
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  const result = await signInWithPopup(auth, provider);
+  return result.user.getIdToken(true);
 }
 
 /**

@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS roles (
 CREATE TABLE IF NOT EXISTS users (
     id              CHAR(36) PRIMARY KEY,
     google_id       VARCHAR(255) UNIQUE,
+    firebase_uid    VARCHAR(128) NULL COMMENT 'Firebase Auth UID',
     email           VARCHAR(255) UNIQUE NOT NULL,
     display_name    VARCHAR(255) NOT NULL,
     avatar_url      TEXT,

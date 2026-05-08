@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const config = require('./config');
+const { isFirebaseAdminConfigured } = require('./services/firebaseAdmin');
 require('./config/passport');
 
 const authRoutes = require('./routes/auth.routes');
@@ -95,6 +96,8 @@ app.get('/api/config/public', (_req, res) => {
     paymentsMode: q.enabled ? 'qpay' : demo ? 'demo' : 'local',
     qpayEbarimtEnabled: Boolean(q.enabled && q.ebarimtEnabled),
     simulatePaymentAllowed: Boolean(config.simulatePaymentAllowed),
+    /** True when core-api can verify Firebase ID tokens (service account configured). */
+    firebaseAuthBackendReady: isFirebaseAdminConfigured(),
   });
 });
 
