@@ -852,6 +852,7 @@ p, span, label, button, input, a, div {
   min-height: 100vh;
   background: var(--bg);
   position: relative;
+  z-index: 2;
   overflow: hidden;
   padding: 24px;
 }
@@ -889,6 +890,13 @@ p, span, label, button, input, a, div {
   z-index: 2;
   box-shadow: 0 0 48px var(--red-glow);
   clip-path: var(--clip-panel);
+}
+
+/* Visible fields on brutalist dark card (global .form-group inputs use --bg, easy to miss vs --surface-1) */
+.login-card .form-group input,
+.login-card .form-group select {
+  background: var(--surface-2);
+  border-color: var(--red-dim);
 }
 
 .login-header { margin-bottom: 28px; }
