@@ -7,7 +7,11 @@ function isFirebaseAdminConfigured() {
   const j = (process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '').trim();
   const b64 = (process.env.FIREBASE_SERVICE_ACCOUNT_JSON_BASE64 || '').trim();
   const adc = (process.env.GOOGLE_APPLICATION_CREDENTIALS || '').trim();
-  return Boolean(p || j || b64 || adc);
+  const individual =
+    (process.env.FIREBASE_PROJECT_ID || '').trim() &&
+    (process.env.FIREBASE_CLIENT_EMAIL || '').trim() &&
+    (process.env.FIREBASE_PRIVATE_KEY || '').trim();
+  return Boolean(p || j || b64 || adc || individual);
 }
 
 let initFailed = null;
@@ -64,6 +68,20 @@ function ensureFirebaseAdmin() {
       return;
     }
 
+    const pid = (process.env.FIREBASE_PROJECT_ID || '').trim();
+    const email = (process.env.FIREBASE_CLIENT_EMAIL || '').trim();
+    const key = (process.env.FIREBASE_PRIVATE_KEY || '').trim();
+
+    if (pid && email && key) {
+      const cred = normalizeServiceAccountCredential({
+        project_id: pid,
+        client_email: email,
+        private_key: key,
+      });
+      admin.initializeApp({ credential: admin.credential.cert(cred) });
+      return;
+    }
+
     throw new Error(
       'Firebase Admin: set FIREBASE_SERVICE_ACCOUNT_PATH, FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SERVICE_ACCOUNT_JSON_BASE64, or GOOGLE_APPLICATION_CREDENTIALS'
     );
@@ -97,6 +115,13 @@ function peekFirebaseServiceAccountProjectId() {
       const resolved = path.isAbsolute(adc) ? adc : path.resolve(process.cwd(), adc);
       if (!fs.existsSync(resolved)) return null;
       cred = JSON.parse(fs.readFileSync(resolved, 'utf8'));
+    } else {
+      const pid = (process.env.FIREBASE_PROJECT_ID || '').trim();
+      const email = (process.env.FIREBASE_CLIENT_EMAIL || '').trim();
+      const key = (process.env.FIREBASE_PRIVATE_KEY || '').trim();
+      if (pid && email && key) {
+        cred = { project_id: pid };
+      }
     }
 
     const pid = cred && cred.project_id;
