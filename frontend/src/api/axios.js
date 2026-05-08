@@ -10,8 +10,14 @@ const api = axios.create({
   withCredentials: false,
 });
 
-// Attach JWT token to every request
+// Attach app JWT — NOT on /auth/firebase (Firebase ID token goes there via explicit header + body).
 api.interceptors.request.use((config) => {
+  const rel = config.url || '';
+  const isFirebaseIdExchange =
+    rel === '/auth/firebase' || rel.endsWith('/auth/firebase');
+  if (isFirebaseIdExchange) {
+    return config;
+  }
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

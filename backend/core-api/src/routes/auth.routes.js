@@ -5,9 +5,25 @@ const pool = require('../db/pool');
 const { generateToken, authenticateToken } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const { registerSchema, loginSchema, firebaseIdTokenSchema } = require('../validators/auth.validator');
-const { verifyFirebaseIdToken, isFirebaseAdminConfigured } = require('../services/firebaseAdmin');
+const { verifyFirebaseIdToken, isFirebaseAdminConfigured, peekFirebaseServiceAccountProjectId } =
+  require('../services/firebaseAdmin');
 
 const router = express.Router();
+
+/** JWT баталгаагүй decode — зөвхөн debug (401 үед `aud` харах). */
+function decodeIdTokenAudienceUnsafe(idToken) {
+  try {
+    const seg = String(idToken || '').split('.')[1];
+    if (!seg) return null;
+    const b64 = seg.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = '='.repeat((4 - (b64.length % 4)) % 4);
+    const payload = JSON.parse(Buffer.from(b64 + pad, 'base64').toString('utf8'));
+    const aud = payload && payload.aud;
+    return aud != null ? String(aud).trim() : null;
+  } catch {
+    return null;
+  }
+}
 
 /** Энэ төсөл POST body `idToken`-оор токен авдаг (ихэнхдээ Authorization биш). Bearer байвал үлээж өгнө — Postman/quick test-д хэрэгтэй. */
 function attachFirebaseIdTokenFromBearer(req, _res, next) {
@@ -56,7 +72,25 @@ router.post('/firebase', attachFirebaseIdTokenFromBearer, validate(firebaseIdTok
       userMsg =
         'Вэбийн Firebase (REACT_APP_FIREBASE_PROJECT_ID) ба серверийн service account JSON нэг ижил Firebase төсөлд байх ёстой. Vercel болон Railway утгуудыг шалгана уу.';
     }
-    return res.status(401).json({ error: userMsg, firebaseCode: code || undefined });
+
+    const idTokenAudience = decodeIdTokenAudienceUnsafe(req.body?.idToken);
+    const serviceAccountProjectId = peekFirebaseServiceAccountProjectId();
+    const firebaseProjectsAligned =
+      Boolean(idTokenAudience && serviceAccountProjectId) && idTokenAudience === serviceAccountProjectId;
+
+    const debug = {
+      idTokenAudience: idTokenAudience || undefined,
+      serviceAccountProjectId: serviceAccountProjectId || undefined,
+      firebaseProjectsAligned: idTokenAudience && serviceAccountProjectId ? firebaseProjectsAligned : undefined,
+    };
+
+    console.error('[auth/firebase] verify debug:', { ...debug, firebaseCode: code || null });
+
+    return res.status(401).json({
+      error: userMsg,
+      firebaseCode: code || undefined,
+      ...debug,
+    });
   }
 
   if (!decoded.email) {

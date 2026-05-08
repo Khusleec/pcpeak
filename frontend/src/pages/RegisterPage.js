@@ -18,6 +18,13 @@ function messageFromFirebaseAuthError(err, fallback) {
   let msg = d.error || fallback;
   if (d.firebaseCode) msg += ` (${d.firebaseCode})`;
   if (d.firebaseIdTokenAudience) msg += ` Токен төсөл (aud): ${d.firebaseIdTokenAudience}.`;
+  if (
+    d.idTokenAudience &&
+    d.serviceAccountProjectId &&
+    d.firebaseProjectsAligned === false
+  ) {
+    msg += ` DEBUG: JWT aud=${d.idTokenAudience}, service account project_id=${d.serviceAccountProjectId}.`;
+  }
   return msg;
 }
 

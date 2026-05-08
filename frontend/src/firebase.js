@@ -121,7 +121,15 @@ export async function completeGoogleRedirectSignIn(apiClient) {
       if (!result?.user) return null;
       const idToken = await result.user.getIdToken(true);
       try {
-        const { data } = await apiClient.post('/auth/firebase', { idToken });
+        const { data } = await apiClient.post(
+          '/auth/firebase',
+          { idToken },
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          }
+        );
         return data;
       } catch (err) {
         const aud = peekIdTokenProjectIdUnsafe(idToken);
