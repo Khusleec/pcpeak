@@ -22,7 +22,13 @@ if (config.trustProxy) {
 
 // ─── Security Middleware ────────────────────────────────────
 // SPA on another origin (e.g. Vercel → Railway) needs CORP cross-origin on API responses.
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    /** JSON API; COOP on responses is irrelevant here and avoids stacking strict headers alongside Firebase/Google flows. */
+    crossOriginOpenerPolicy: false,
+  })
+);
 // Primary: FRONTEND_URL (comma-separated); optional: CORS_ORIGINS; optional: CORS_ALLOW_VERCEL
 const allowedOrigins = new Set(
   [

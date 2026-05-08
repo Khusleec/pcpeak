@@ -1,6 +1,8 @@
 /**
  * API base URL for axios and OAuth links.
- * - REACT_APP_API_URL wins when set (Vercel/Railway explicit).
+ * - REACT_APP_API_URL wins when set (full URL ending in /api). If this points straight at Railway,
+ *   the browser sees cross-origin POSTs — OK with CORS, but prefer leaving it unset on Vercel so
+ *   `/api/*` rewrite keeps same-origin `/api`.
  * - On deployed origin (not localhost): same-origin `/api` → Vercel rewrites proxy to Railway.
  * - Local dev: docker-compose uses CORE_API_PORT=5500 → default http://localhost:5500/api
  */

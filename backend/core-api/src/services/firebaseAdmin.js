@@ -113,7 +113,7 @@ function peekFirebaseServiceAccountProjectId() {
 async function verifyFirebaseIdToken(idToken) {
   ensureFirebaseAdmin();
   const admin = require('firebase-admin');
-  return admin.auth().verifyIdToken(idToken, true);
+  return admin.auth().verifyIdToken(idToken, false);
 }
 
 module.exports = {
