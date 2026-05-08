@@ -10,14 +10,7 @@ const api = axios.create({
   withCredentials: false,
 });
 
-// Attach app JWT — NOT on /auth/firebase (Firebase ID token goes there via explicit header + body).
 api.interceptors.request.use((config) => {
-  const rel = config.url || '';
-  const isFirebaseIdExchange =
-    rel === '/auth/firebase' || rel.endsWith('/auth/firebase');
-  if (isFirebaseIdExchange) {
-    return config;
-  }
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -25,10 +18,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle auth failures (expired/invalid token).
-// IMPORTANT: don't hard-redirect with window.location — that wipes React state
-// and breaks AuthContext's restoration flow on page refresh.
-// Just clear the token and let AuthContext + route components react via state.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -42,12 +31,8 @@ api.interceptors.response.use(
     }
     const status = error.response?.status;
     const url = error.config?.url || '';
-    // Anchor the match — `includes` would match e.g. `/posts/auth/me-comments`.
     const isAuthEndpoint = url === '/auth/me' || url.endsWith('/auth/me');
 
-    // Only purge the token when the server explicitly rejects it.
-    // Skip the auto-purge for /auth/me — AuthContext owns that decision so
-    // refreshes don't get nuked by a transient hiccup.
     if ((status === 401 || status === 403) && !isAuthEndpoint) {
       localStorage.removeItem('token');
     }

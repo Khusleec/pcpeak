@@ -1,34 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { signOutFirebase, completeGoogleRedirectSignIn } from '../firebase';
 
 const AuthContext = createContext(null);
-
-/** Gmail/Firebase redirect буцаж ирэхэд URL нь /login биш ч болно — энд нэг удаа солилцоо хийнэ (firebase.js single-flight-тай үйлчилнэ). */
-function FirebaseRedirectSessionCompleter() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const data = await completeGoogleRedirectSignIn(api);
-        if (cancelled || !data) return;
-        login(data.token, data.user);
-        navigate('/', { replace: true });
-      } catch {
-        // Алдааг LoginPage / RegisterPage (мөн давхардсан await) харуулна
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [login, navigate]);
-
-  return null;
-}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -45,9 +18,6 @@ export function AuthProvider({ children }) {
       setUser(data);
     } catch (err) {
       const status = err.response?.status;
-      // Only kill the session when the server explicitly rejects the token
-      // (401 = invalid auth, 403 = expired token, 404 = user no longer exists).
-      // Network errors / 5xx = transient — keep the token so the next render works.
       if (status === 401 || status === 403 || status === 404) {
         localStorage.removeItem('token');
         setUser(null);
@@ -71,12 +41,10 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     setUser(null);
-    signOutFirebase().catch(() => {});
   }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, fetchUser }}>
-      <FirebaseRedirectSessionCompleter />
       {children}
     </AuthContext.Provider>
   );

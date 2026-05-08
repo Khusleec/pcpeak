@@ -2,13 +2,14 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 /**
- * OAuth redirect URL үлдээлт — одоо зөвхөн Firebase Google нэвтрэлт ашиглана.
+ * Хуучин OAuth callback зам — үлдээсэн холбоосоос /login руу шилжинэ.
+ * Нэвтрэлт бол имэйл/нууцаар (/login).
  */
 export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate('/login', { replace: true, state: { fromLegacyOAuth: true } });
+    navigate('/login', { replace: true });
   }, [navigate]);
 
   return (

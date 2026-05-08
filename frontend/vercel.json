@@ -4,16 +4,5 @@
       "source": "/api/:path*",
       "destination": "https://pcpeak-production-ccdd.up.railway.app/api/:path*"
     }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin-allow-popups"
-        }
-      ]
-    }
   ]
 }

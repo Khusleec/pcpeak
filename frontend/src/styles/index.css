@@ -220,15 +220,6 @@ p, span, label, button, input, a, div {
 }
 .btn-danger:hover { background: var(--red); color: var(--bg); }
 
-.btn-google {
-  background: var(--text);
-  color: var(--bg);
-  border: 1px solid var(--text);
-  font-weight: 900;
-  letter-spacing: 0.2em;
-}
-.btn-google:hover { background: #d4d4d4; color: var(--bg); border-color: #d4d4d4; }
-
 /* ─── Panel / Card ──────────────────────────────────────── */
 .panel {
   background: var(--surface-1);

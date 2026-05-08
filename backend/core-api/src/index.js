@@ -4,7 +4,6 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const config = require('./config');
-const { isFirebaseAdminConfigured, peekFirebaseServiceAccountProjectId } = require('./services/firebaseAdmin');
 
 const authRoutes = require('./routes/auth.routes');
 const cafeRoutes = require('./routes/cafe.routes');
@@ -25,7 +24,7 @@ if (config.trustProxy) {
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
-    /** JSON API; COOP on responses is irrelevant here and avoids stacking strict headers alongside Firebase/Google flows. */
+    /** JSON API; avoid stacking strict COOP on API responses. */
     crossOriginOpenerPolicy: false,
   })
 );
@@ -106,10 +105,6 @@ app.get('/api/config/public', (_req, res) => {
     paymentsMode: q.enabled ? 'qpay' : demo ? 'demo' : 'local',
     qpayEbarimtEnabled: Boolean(q.enabled && q.ebarimtEnabled),
     simulatePaymentAllowed: Boolean(config.simulatePaymentAllowed),
-    /** True when core-api can verify Firebase ID tokens (service account configured). */
-    firebaseAuthBackendReady: isFirebaseAdminConfigured(),
-    /** Firebase `project_id` from service-account JSON — compare to REACT_APP_FIREBASE_PROJECT_ID. */
-    firebaseAdminProjectId: peekFirebaseServiceAccountProjectId(),
   });
 });
 

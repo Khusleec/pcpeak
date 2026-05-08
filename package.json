@@ -19,7 +19,5 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {
-    "firebase": "^12.13.0"
-  }
+  "dependencies": {}
 }

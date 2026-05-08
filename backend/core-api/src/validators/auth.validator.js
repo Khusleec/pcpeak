@@ -11,8 +11,4 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Нууц үгээ оруулна уу'),
 });
 
-const firebaseIdTokenSchema = z.object({
-  idToken: z.string().min(100, 'Firebase токен дутуу байна').max(12000),
-});
-
-module.exports = { registerSchema, loginSchema, firebaseIdTokenSchema };
+module.exports = { registerSchema, loginSchema };
