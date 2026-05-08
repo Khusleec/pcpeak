@@ -28,9 +28,14 @@ const allowedOrigins = new Set(
   [
     ...config.frontendOrigins,
     ...config.corsExtraOrigins,
+
     'http://localhost:3000',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+
+    'https://pcpeak.vercel.app',
+    'https://pcpeak-git-main-khusleecs-projects.vercel.app',
+    'https://pcpeak-reto4wmay-khusleecs-projects.vercel.app',
   ].filter(Boolean)
 );
 app.use(
@@ -40,7 +45,7 @@ app.use(
       if (allowedOrigins.has(origin)) return cb(null, true);
       if (
         config.corsAllowVercel &&
-        /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)
+        /^https:\/\/[^/]+\.vercel\.app$/i.test(origin)
       ) {
         return cb(null, true);
       }

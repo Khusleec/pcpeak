@@ -8,6 +8,21 @@ function parseCommaList(s) {
     .filter(Boolean);
 }
 
+/** Used to auto-allow *.vercel.app CORS when you already list a production Vercel URL in FRONTEND_URL */
+function originHostnameEndsWithVercelApp(url) {
+  if (!url) return false;
+  try {
+    const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    const host = new URL(normalized).hostname.toLowerCase();
+    return host === 'vercel.app' || host.endsWith('.vercel.app');
+  } catch {
+    return /\.vercel\.app$/i.test(String(url));
+  }
+}
+
+const frontendOriginsList = parseCommaList(process.env.FRONTEND_URL || 'http://localhost:3000');
+const corsExtraOriginsList = parseCommaList(process.env.CORS_ORIGINS);
+
 const nodeEnv = process.env.NODE_ENV || 'development';
 const isProd = nodeEnv === 'production';
 
@@ -50,17 +65,25 @@ module.exports = {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   },
   /** First FRONTEND_URL entry (payment return / email-style links) */
-  frontendUrl: (() => {
-    const list = parseCommaList(process.env.FRONTEND_URL || 'http://localhost:3000');
-    return list[0] || 'http://localhost:3000';
-  })(),
+  frontendUrl: frontendOriginsList[0] || 'http://localhost:3000',
   /** All FRONTEND_URL values (comma-separated) are allowed CORS origins */
-  frontendOrigins: parseCommaList(process.env.FRONTEND_URL || 'http://localhost:3000'),
+  frontendOrigins: frontendOriginsList,
   /** Extra browser origins for CORS (comma-separated), e.g. Vercel preview URLs */
-  corsExtraOrigins: parseCommaList(process.env.CORS_ORIGINS),
-  /** Allow any https://*.vercel.app origin (previews + production on vercel.app) */
-  corsAllowVercel:
-    process.env.CORS_ALLOW_VERCEL === 'true' || process.env.CORS_ALLOW_VERCEL === '1',
+  corsExtraOrigins: corsExtraOriginsList,
+  /**
+   * Allow https://*.vercel.app (previews like *-git-*-*.vercel.app plus production *.vercel.app).
+   * true if CORS_ALLOW_VERCEL=true, or inferred when FRONTEND_URL/CORS_ORIGINS already includes any *.vercel.app host.
+   * Set CORS_ALLOW_VERCEL=false to disable even when FRONTEND_URL is on vercel.app.
+   */
+  corsAllowVercel: (() => {
+    if (process.env.CORS_ALLOW_VERCEL === 'false' || process.env.CORS_ALLOW_VERCEL === '0') {
+      return false;
+    }
+    if (process.env.CORS_ALLOW_VERCEL === 'true' || process.env.CORS_ALLOW_VERCEL === '1') {
+      return true;
+    }
+    return [...frontendOriginsList, ...corsExtraOriginsList].some(originHostnameEndsWithVercelApp);
+  })(),
   // Prefer AI_*; OPENAI_* / legacy names still work via fallbacks below.
   ai: {
     apiKey: process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '',
