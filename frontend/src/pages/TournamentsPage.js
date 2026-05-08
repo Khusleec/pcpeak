@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import { Trophy, ChevronRight } from 'lucide-react';
 
 const STATUS = {
@@ -12,6 +13,7 @@ const STATUS = {
 };
 
 export default function TournamentsPage() {
+  const { user } = useAuth();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,9 +45,16 @@ export default function TournamentsPage() {
             <div className="section-eyebrow">// МОДУЛЬ_ТЭМЦЭЭН</div>
             <h2 className="section-title">ТЭМЦЭЭН</h2>
           </div>
-          <span className="section-meta">
-            {rows.length > 0 ? `${rows.length} ИДЭВХТЭЙ` : 'ОДОО ХООСОН'} // Сүлжээний арга хэмжээ
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            {user && (
+              <Link to="/tournaments/new" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+                + ШИНЭ ТЭМЦЭЭН
+              </Link>
+            )}
+            <span className="section-meta">
+              {rows.length > 0 ? `${rows.length} ИДЭВХТЭЙ` : 'ОДОО ХООСОН'} // Сүлжээний арга хэмжээ
+            </span>
+          </div>
         </div>
 
         {rows.length === 0 ? (
@@ -72,6 +81,11 @@ export default function TournamentsPage() {
                       <span className={t.status === 'registration' ? 'dot alert' : 'dot live'} />
                       {STATUS[t.status] || t.status?.toUpperCase()}
                     </span>
+                    {t.visibility === 'private' && (
+                      <span className="booking-status confirmed" style={{ marginLeft: 6 }}>
+                        <span className="dot" /> ХУВИЙН
+                      </span>
+                    )}
                   </div>
                   <div className="mono" style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 8, textTransform: 'none' }}>
                     {t.game_title} {t.cafe_name ? `:: ${t.cafe_name}` : ''}

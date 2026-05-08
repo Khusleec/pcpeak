@@ -186,11 +186,14 @@ async function seed() {
         const e3 = new Date(s3.getTime() + 10 * 3600000);
         const reg3 = new Date(s3.getTime() - 24 * 3600000);
         await pool.query(
-          `INSERT INTO tournaments (title, description, game_title, cafe_id, starts_at, ends_at, registration_deadline, max_participants, prize_pool_mnt, status)
+          `INSERT INTO tournaments (
+            title, description, game_title, cafe_id, starts_at, ends_at, registration_deadline,
+            max_participants, prize_pool_mnt, status, visibility, setup_mode, bracket_type
+          )
            VALUES
-           (?, ?, ?, ?, ?, ?, ?, ?, ?, 'registration'),
-           (?, ?, ?, ?, ?, ?, ?, ?, ?, 'registration'),
-           (?, ?, ?, ?, ?, ?, ?, ?, ?, 'registration')`,
+           (?, ?, ?, ?, ?, ?, ?, ?, ?, 'registration', 'public', 'manual', 'elimination'),
+           (?, ?, ?, ?, ?, ?, ?, ?, ?, 'registration', 'public', 'automatic', 'elimination'),
+           (?, ?, ?, ?, ?, ?, ?, ?, ?, 'registration', 'public', 'manual', 'double_elimination')`,
           [
             'MGL OPEN — Valorant (Season 1)',
             'Сүлжээний нээлтийн цуврал. 5v5 эсвэл түвшин тогтоосон формат.',

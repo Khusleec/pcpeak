@@ -94,4 +94,31 @@ describe('integration: auth / oauth / bookings', () => {
     const res = await request(app).get('/api/tournaments').expect(200);
     expect(Array.isArray(res.body)).toBe(true);
   });
+
+  test('create tournament (auth)', async () => {
+    expect(token).toBeTruthy();
+    const cafes = await request(app).get('/api/cafes').expect(200);
+    expect(cafes.body.length).toBeGreaterThan(0);
+    const cafeId = cafes.body[0].id;
+    const starts = new Date(Date.now() + 7 * 86400000).toISOString();
+    const ends = new Date(Date.now() + 7 * 86400000 + 4 * 3600000).toISOString();
+    const res = await request(app)
+      .post('/api/tournaments')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: `Smoke Cup ${crypto.randomBytes(4).toString('hex')}`,
+        game_title: 'Valorant',
+        cafe_id: cafeId,
+        starts_at: starts,
+        ends_at: ends,
+        max_participants: 16,
+        prize_pool_mnt: 100000,
+        visibility: 'public',
+        setup_mode: 'manual',
+        bracket_type: 'elimination',
+      })
+      .expect(201);
+    expect(res.body.id).toBeDefined();
+    expect(res.body.created_by).toBe(userId);
+  });
 });

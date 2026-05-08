@@ -13,6 +13,21 @@ const STATUS = {
   cancelled: 'ЦУЦЛАГДСАН',
 };
 
+const VISIBILITY = {
+  public: 'НЭЭЛТТЭЙ',
+  private: 'ХУВИЙН',
+};
+
+const SETUP_MODE = {
+  manual: 'ГАРААР',
+  automatic: 'АВТОМАТ',
+};
+
+const BRACKET_TYPE = {
+  elimination: 'ЭЛИМИНАЦИ',
+  double_elimination: 'ДАВХАР ЭЛИМИНАЦИ',
+};
+
 export default function TournamentDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -157,6 +172,24 @@ export default function TournamentDetailPage() {
               <div className="label" style={{ marginBottom: 4 }}>// ШАГНАЛЫН САН</div>
               <div className="display" style={{ fontSize: 22, color: 'var(--amber)' }}>
                 ₮{Math.round(Number(t.prize_pool_mnt || 0)).toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div className="label" style={{ marginBottom: 4 }}>// ХАРАГДАХ</div>
+              <div className="mono" style={{ color: 'var(--text)', textTransform: 'none' }}>
+                {VISIBILITY[t.visibility] || t.visibility || '—'}
+              </div>
+            </div>
+            <div>
+              <div className="label" style={{ marginBottom: 4 }}>// ТОХИРГОО</div>
+              <div className="mono" style={{ color: 'var(--text)', textTransform: 'none' }}>
+                {SETUP_MODE[t.setup_mode] || t.setup_mode || '—'}
+              </div>
+            </div>
+            <div>
+              <div className="label" style={{ marginBottom: 4 }}>// СИСТЕМ</div>
+              <div className="mono" style={{ color: 'var(--text)', textTransform: 'none' }}>
+                {BRACKET_TYPE[t.bracket_type] || t.bracket_type || '—'}
               </div>
             </div>
           </div>

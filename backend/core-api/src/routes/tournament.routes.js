@@ -2,28 +2,117 @@ const express = require('express');
 const pool = require('../db/pool');
 const { authenticateToken, optionalAuthenticateToken } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
-const { registerSchema } = require('../validators/tournament.validator');
+const {
+  registerSchema,
+  createTournamentSchema,
+  updateTournamentSchema,
+} = require('../validators/tournament.validator');
 
 const router = express.Router();
 
 const DEADLINE_SQL = 'COALESCE(t.registration_deadline, t.starts_at)';
 
-// ─── List tournaments (public) ─────────────────────────────
-router.get('/', async (_req, res) => {
+function toSqlDateTime(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString().slice(0, 19).replace('T', ' ');
+}
+
+async function canViewPrivateTournament(row, userId) {
+  if (row.visibility !== 'private') return true;
+  if (!userId) return false;
+  if (row.created_by && row.created_by === userId) return true;
+  const r = await pool.query(
+    'SELECT 1 AS ok FROM tournament_registrations WHERE tournament_id = ? AND user_id = ? LIMIT 1',
+    [row.id, userId]
+  );
+  return r.rows.length > 0;
+}
+
+// ─── List tournaments (visibility-aware) ───────────────────
+router.get('/', optionalAuthenticateToken, async (req, res) => {
   try {
-    const result = await pool.query(
-      `SELECT t.*,
+    const uid = req.user?.id || null;
+    let sql = `SELECT t.*,
               c.name AS cafe_name,
               (SELECT COUNT(*) FROM tournament_registrations tr WHERE tr.tournament_id = t.id) AS registered_count
        FROM tournaments t
        LEFT JOIN cafes c ON c.id = t.cafe_id
-       WHERE t.status != 'cancelled'
-       ORDER BY t.starts_at ASC`
-    );
+       WHERE t.status != 'cancelled'`;
+    const params = [];
+    if (uid) {
+      sql += ` AND (
+        t.visibility = 'public'
+        OR t.created_by = ?
+        OR EXISTS (SELECT 1 FROM tournament_registrations tr2 WHERE tr2.tournament_id = t.id AND tr2.user_id = ?)
+      )`;
+      params.push(uid, uid);
+    } else {
+      sql += ` AND t.visibility = 'public'`;
+    }
+    sql += ` ORDER BY t.starts_at ASC`;
+    const result = await pool.query(sql, params);
     res.json(result.rows);
   } catch (err) {
     console.error('List tournaments:', err);
     res.status(500).json({ error: 'Тэмцээний жагсаалт татаж чадсангүй' });
+  }
+});
+
+// ─── Create tournament (organizer) ─────────────────────────
+router.post('/', authenticateToken, validate(createTournamentSchema), async (req, res) => {
+  const b = req.body;
+  const startsAt = toSqlDateTime(b.starts_at);
+  const endsAt = toSqlDateTime(b.ends_at);
+  if (!startsAt || !endsAt) {
+    return res.status(400).json({ error: 'Огноо буруу байна' });
+  }
+  let regDeadline = null;
+  if (b.registration_deadline != null && String(b.registration_deadline).trim() !== '') {
+    regDeadline = toSqlDateTime(b.registration_deadline);
+    if (!regDeadline) {
+      return res.status(400).json({ error: 'Бүртгэлийн хугацаа буруу байна' });
+    }
+  }
+  if (b.cafe_id != null) {
+    const c = await pool.query('SELECT id FROM cafes WHERE id = ?', [b.cafe_id]);
+    if (c.rows.length === 0) {
+      return res.status(400).json({ error: 'Салбар олдсонгүй' });
+    }
+  }
+  try {
+    const ins = await pool.query(
+      `INSERT INTO tournaments (
+        title, description, game_title, cafe_id, starts_at, ends_at, registration_deadline,
+        max_participants, prize_pool_mnt, status, created_by, visibility, setup_mode, bracket_type
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'registration', ?, ?, ?, ?)`,
+      [
+        b.title,
+        b.description != null ? String(b.description).trim() || null : null,
+        b.game_title,
+        b.cafe_id ?? null,
+        startsAt,
+        endsAt,
+        regDeadline,
+        b.max_participants ?? 32,
+        b.prize_pool_mnt ?? 0,
+        req.user.id,
+        b.visibility ?? 'public',
+        b.setup_mode ?? 'manual',
+        b.bracket_type ?? 'elimination',
+      ]
+    );
+    const id = ins.insertId;
+    const row = await pool.query(
+      `SELECT t.*, c.name AS cafe_name,
+        (SELECT COUNT(*) FROM tournament_registrations tr WHERE tr.tournament_id = t.id) AS registered_count
+       FROM tournaments t LEFT JOIN cafes c ON c.id = t.cafe_id WHERE t.id = ?`,
+      [id]
+    );
+    res.status(201).json({ ...row.rows[0], user_registered: false, my_in_game_name: null });
+  } catch (err) {
+    console.error('Create tournament:', err);
+    res.status(500).json({ error: 'Тэмцээн үүсгэхэд алдаа гарлаа' });
   }
 });
 
@@ -47,12 +136,17 @@ router.get('/:id', optionalAuthenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Тэмцээн олдсонгүй' });
     }
     const row = rows.rows[0];
+    const uid = req.user?.id || null;
+    const canView = await canViewPrivateTournament(row, uid);
+    if (!canView) {
+      return res.status(404).json({ error: 'Тэмцээн олдсонгүй' });
+    }
     let user_registered = false;
     let my_in_game_name = null;
-    if (req.user && req.user.id) {
+    if (uid) {
       const r = await pool.query(
         `SELECT in_game_name FROM tournament_registrations WHERE tournament_id = ? AND user_id = ?`,
-        [id, req.user.id]
+        [id, uid]
       );
       if (r.rows.length > 0) {
         user_registered = true;
@@ -63,6 +157,89 @@ router.get('/:id', optionalAuthenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Get tournament:', err);
     res.status(500).json({ error: 'Тэмцээний мэдээлэл татаж чадсангүй' });
+  }
+});
+
+// ─── Update tournament (creator only) ──────────────────────
+router.patch('/:id', authenticateToken, validate(updateTournamentSchema), async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id) || id < 1) {
+    return res.status(400).json({ error: 'Тэмцээний ID буруу байна' });
+  }
+  const existing = await pool.query('SELECT * FROM tournaments WHERE id = ?', [id]);
+  if (existing.rows.length === 0) {
+    return res.status(404).json({ error: 'Тэмцээн олдсонгүй' });
+  }
+  const t = existing.rows[0];
+  if (t.created_by !== req.user.id) {
+    return res.status(403).json({ error: 'Зөвхөн зохион байгуулагч шинэчилнэ' });
+  }
+  const patch = req.body;
+  const cols = [];
+  const vals = [];
+  const map = {
+    title: () => patch.title,
+    description: () => {
+      if (patch.description === null) return null;
+      if (patch.description === undefined) return undefined;
+      return String(patch.description).trim() || null;
+    },
+    game_title: () => patch.game_title,
+    cafe_id: () => patch.cafe_id,
+    starts_at: () => (patch.starts_at != null ? toSqlDateTime(patch.starts_at) : undefined),
+    ends_at: () => (patch.ends_at != null ? toSqlDateTime(patch.ends_at) : undefined),
+    registration_deadline: () => {
+      if (patch.registration_deadline === null) return null;
+      if (patch.registration_deadline === undefined) return undefined;
+      return toSqlDateTime(patch.registration_deadline);
+    },
+    max_participants: () => patch.max_participants,
+    prize_pool_mnt: () => patch.prize_pool_mnt,
+    visibility: () => patch.visibility,
+    setup_mode: () => patch.setup_mode,
+    bracket_type: () => patch.bracket_type,
+    status: () => patch.status,
+  };
+  for (const [key, getVal] of Object.entries(map)) {
+    if (!(key in patch)) continue;
+    const v = getVal();
+    if (v === undefined) continue;
+    cols.push(`${key} = ?`);
+    vals.push(v);
+  }
+  if (cols.length === 0) {
+    return res.status(400).json({ error: 'Шинэчлэх талбар байхгүй' });
+  }
+  if (patch.cafe_id != null) {
+    const c = await pool.query('SELECT id FROM cafes WHERE id = ?', [patch.cafe_id]);
+    if (c.rows.length === 0) {
+      return res.status(400).json({ error: 'Салбар олдсонгүй' });
+    }
+  }
+  vals.push(id);
+  try {
+    await pool.query(`UPDATE tournaments SET ${cols.join(', ')} WHERE id = ?`, vals);
+    const row = await pool.query(
+      `SELECT t.*, c.name AS cafe_name,
+        (SELECT COUNT(*) FROM tournament_registrations tr WHERE tr.tournament_id = t.id) AS registered_count
+       FROM tournaments t LEFT JOIN cafes c ON c.id = t.cafe_id WHERE t.id = ?`,
+      [id]
+    );
+    const r = row.rows[0];
+    let user_registered = false;
+    let my_in_game_name = null;
+    const r2 = await pool.query(
+      `SELECT in_game_name FROM tournament_registrations WHERE tournament_id = ? AND user_id = ?`,
+      [id, req.user.id]
+    );
+    if (r2.rows.length > 0) {
+      user_registered = true;
+      my_in_game_name = r2.rows[0].in_game_name;
+    }
+    res.json({ ...r, user_registered, my_in_game_name });
+  } catch (err) {
+    console.error('Patch tournament:', err);
+    res.status(500).json({ error: 'Шинэчлэхэд алдаа гарлаа' });
   }
 });
 
