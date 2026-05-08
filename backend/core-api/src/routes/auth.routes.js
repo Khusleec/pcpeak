@@ -9,8 +9,21 @@ const { verifyFirebaseIdToken, isFirebaseAdminConfigured } = require('../service
 
 const router = express.Router();
 
+/** Энэ төсөл POST body `idToken`-оор токен авдаг (ихэнхдээ Authorization биш). Bearer байвал үлээж өгнө — Postman/quick test-д хэрэгтэй. */
+function attachFirebaseIdTokenFromBearer(req, _res, next) {
+  const body = req.body;
+  if (body && (!body.idToken || typeof body.idToken !== 'string')) {
+    const authz = req.headers.authorization;
+    if (authz && typeof authz === 'string') {
+      const m = /^Bearer\s+(\S+)/i.exec(authz.trim());
+      if (m) body.idToken = m[1];
+    }
+  }
+  next();
+}
+
 // ─── Firebase Auth (Google via client SDK → ID token → JWT) ──
-router.post('/firebase', validate(firebaseIdTokenSchema), async (req, res) => {
+router.post('/firebase', attachFirebaseIdTokenFromBearer, validate(firebaseIdTokenSchema), async (req, res) => {
   if (!isFirebaseAdminConfigured()) {
     return res.status(503).json({
       error: 'Firebase серверийн тохиргоо дутуу. FIREBASE_SERVICE_ACCOUNT_PATH эсвэл GOOGLE_APPLICATION_CREDENTIALS тохируулна уу.',
@@ -19,11 +32,19 @@ router.post('/firebase', validate(firebaseIdTokenSchema), async (req, res) => {
 
   let decoded;
   try {
+    const raw = req.body.idToken;
+    console.log('[auth/firebase] inbound:', {
+      idTokenLength: typeof raw === 'string' ? raw.length : 0,
+      jwtSections: typeof raw === 'string' ? raw.split('.').length : 0,
+      authorizationHeader: req.headers.authorization ? 'set' : 'missing',
+      hint: 'Frontend илгээгдэл: JSON body { idToken } (ЭСВЭЛ Authorization: Bearer …)',
+    });
     decoded = await verifyFirebaseIdToken(req.body.idToken);
   } catch (err) {
     const code = err?.code || '';
     const detail = String(err?.message || '');
-    console.error('[auth/firebase] verifyIdToken:', code || '(no code)', detail || err);
+    console.error('[auth/firebase] verifyIdToken failed:', code || '(no code)', detail);
+    console.error(err);
     let userMsg = 'Firebase токен хүчингүй эсвэл хугацаа дууссан';
     if (code === 'auth/id-token-expired') {
       userMsg = 'Токены хугацаа дууссан — дахин Google-аар оролдоно уу.';

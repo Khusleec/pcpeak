@@ -12,6 +12,19 @@ function isFirebaseAdminConfigured() {
 
 let initFailed = null;
 
+/**
+ * Railway/.env-д private_key хуулмаар "\\n" гэж хадгалагддаг → жинхэнэ newline болгоно.
+ * @param {Record<string, unknown>} cred
+ */
+function normalizeServiceAccountCredential(cred) {
+  if (!cred || typeof cred !== 'object') return cred;
+  const key = cred.private_key;
+  if (typeof key === 'string' && key.includes('\\n')) {
+    return { ...cred, private_key: key.replace(/\\n/g, '\n') };
+  }
+  return cred;
+}
+
 function ensureFirebaseAdmin() {
   const admin = require('firebase-admin');
   if (admin.apps.length > 0) return;
@@ -27,19 +40,21 @@ function ensureFirebaseAdmin() {
       if (!fs.existsSync(resolved)) {
         throw new Error(`FIREBASE_SERVICE_ACCOUNT_PATH not found: ${resolved}`);
       }
-      const cred = JSON.parse(fs.readFileSync(resolved, 'utf8'));
+      const cred = normalizeServiceAccountCredential(JSON.parse(fs.readFileSync(resolved, 'utf8')));
       admin.initializeApp({ credential: admin.credential.cert(cred) });
       return;
     }
 
     if (jsonRaw) {
-      const cred = JSON.parse(jsonRaw);
+      const cred = normalizeServiceAccountCredential(JSON.parse(jsonRaw));
       admin.initializeApp({ credential: admin.credential.cert(cred) });
       return;
     }
 
     if (b64) {
-      const cred = JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+      const cred = normalizeServiceAccountCredential(
+        JSON.parse(Buffer.from(b64, 'base64').toString('utf8'))
+      );
       admin.initializeApp({ credential: admin.credential.cert(cred) });
       return;
     }
