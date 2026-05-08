@@ -1,8 +1,34 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { signOutFirebase } from '../firebase';
+import { signOutFirebase, completeGoogleRedirectSignIn } from '../firebase';
 
 const AuthContext = createContext(null);
+
+/** Gmail/Firebase redirect буцаж ирэхэд URL нь /login биш ч болно — энд нэг удаа солилцоо хийнэ (firebase.js single-flight-тай үйлчилнэ). */
+function FirebaseRedirectSessionCompleter() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await completeGoogleRedirectSignIn(api);
+        if (cancelled || !data) return;
+        login(data.token, data.user);
+        navigate('/', { replace: true });
+      } catch {
+        // Алдааг LoginPage / RegisterPage (мөн давхардсан await) харуулна
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [login, navigate]);
+
+  return null;
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -50,6 +76,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, fetchUser }}>
+      <FirebaseRedirectSessionCompleter />
       {children}
     </AuthContext.Provider>
   );

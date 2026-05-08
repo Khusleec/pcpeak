@@ -70,23 +70,38 @@ export async function startSignInWithGoogleRedirect() {
 /**
  * After returning from Google/Firebase redirect, exchange ID token for app JWT.
  * No-op (resolves null) if this load was not finishing a redirect sign-in.
+ *
+ * ВАЖ: `getRedirectResult` нэг удаа л ажиллана. React 18 StrictMode эсвэл олон
+ * component дахин `useEffect`-ээр дуудахад хоёр дахь удаа null өгч "алдаөгүй" login руу орно.
+ * Тиймээс бүх дуудлага нэг Promise-оор нэгтгэгдэнэ.
  */
+let redirectSignInPromise = null;
+
 export async function completeGoogleRedirectSignIn(apiClient) {
   const auth = getFirebaseAuth();
   if (!auth) return null;
-  const result = await getRedirectResult(auth);
-  if (!result?.user) return null;
-  const idToken = await result.user.getIdToken(true);
-  try {
-    const { data } = await apiClient.post('/auth/firebase', { idToken });
-    return data;
-  } catch (err) {
-    const aud = peekIdTokenProjectIdUnsafe(idToken);
-    if (err?.response?.data && aud) {
-      err.response.data.firebaseIdTokenAudience = aud;
-    }
-    throw err;
+
+  if (!redirectSignInPromise) {
+    redirectSignInPromise = (async () => {
+      const result = await getRedirectResult(auth);
+      if (!result?.user) return null;
+      const idToken = await result.user.getIdToken(true);
+      try {
+        const { data } = await apiClient.post('/auth/firebase', { idToken });
+        return data;
+      } catch (err) {
+        const aud = peekIdTokenProjectIdUnsafe(idToken);
+        if (err?.response?.data && aud) {
+          err.response.data.firebaseIdTokenAudience = aud;
+        }
+        throw err;
+      }
+    })().finally(() => {
+      redirectSignInPromise = null;
+    });
   }
+
+  return redirectSignInPromise;
 }
 
 /** Clear Firebase Auth session (call on app logout). */
