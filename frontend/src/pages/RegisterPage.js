@@ -3,9 +3,16 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { AlertOctagon } from 'lucide-react';
-import { getFirebaseApp, startSignInWithGoogleRedirect, completeGoogleRedirectSignIn } from '../firebase';
+import {
+  getFirebaseApp,
+  startSignInWithGoogleRedirect,
+  completeGoogleRedirectSignIn,
+  friendlyFirebaseClientErrorMessage,
+} from '../firebase';
 
 function messageFromFirebaseAuthError(err, fallback) {
+  const clientMsg = friendlyFirebaseClientErrorMessage(err);
+  if (clientMsg) return clientMsg;
   const d = err?.response?.data;
   if (!d) return err?.message || fallback;
   let msg = d.error || fallback;
@@ -82,7 +89,7 @@ export default function RegisterPage() {
     try {
       await startSignInWithGoogleRedirect();
     } catch (err) {
-      setError(err.message || 'БҮРТГЭЛ АМЖИЛТГҮЙ БОЛЛОО');
+      setError(friendlyFirebaseClientErrorMessage(err) || err.message || 'БҮРТГЭЛ АМЖИЛТГҮЙ БОЛЛОО');
       setFirebaseLoading(false);
     }
   };

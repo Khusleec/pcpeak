@@ -4,7 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { AlertOctagon } from 'lucide-react';
 
-import { getFirebaseApp, startSignInWithGoogleRedirect, completeGoogleRedirectSignIn } from '../firebase';
+import {
+  getFirebaseApp,
+  startSignInWithGoogleRedirect,
+  completeGoogleRedirectSignIn,
+  friendlyFirebaseClientErrorMessage,
+} from '../firebase';
 
 function loginErrorFromQuery(code) {
   if (code === 'oauth_failed' || code === 'google_oauth_misconfigured') {
@@ -14,6 +19,8 @@ function loginErrorFromQuery(code) {
 }
 
 function messageFromFirebaseAuthError(err, fallback) {
+  const clientMsg = friendlyFirebaseClientErrorMessage(err);
+  if (clientMsg) return clientMsg;
   const d = err?.response?.data;
   if (!d) return err?.message || fallback;
   let msg = d.error || fallback;
@@ -103,7 +110,7 @@ export default function LoginPage() {
     try {
       await startSignInWithGoogleRedirect();
     } catch (err) {
-      setError(err.message || 'НЭВТРЭХ АМЖИЛТГҮЙ БОЛЛОО');
+      setError(friendlyFirebaseClientErrorMessage(err) || err.message || 'НЭВТРЭХ АМЖИЛТГҮЙ БОЛЛОО');
       setFirebaseLoading(false);
     }
   };

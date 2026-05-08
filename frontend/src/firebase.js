@@ -34,6 +34,40 @@ export function peekIdTokenProjectIdUnsafe(idToken) {
 }
 
 /**
+ * Firebase Web SDK-ийн client алдааг (жишээ auth/unauthorized-domain) тайлбартай болгоно.
+ * @param {unknown} err
+ * @returns {string | null}
+ */
+export function friendlyFirebaseClientErrorMessage(err) {
+  const code =
+    err && typeof err === 'object' && 'code' in err
+      ? String(/** @type {{ code?: string }} */ (err).code || '')
+      : '';
+  const raw =
+    err && typeof err === 'object' && 'message' in err
+      ? String(/** @type {{ message?: string }} */ (err).message || '')
+      : '';
+  const merged = `${code} ${raw}`.toUpperCase();
+
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+
+  if (code === 'auth/unauthorized-domain' || merged.includes('UNAUTHORIZED-DOMAIN')) {
+    return (
+      `Энэ хаяг (${host}) Firebase Authentication-ийн Authorized domains-д бүртгэгдээгүй байна. ` +
+      `Firebase Console → Build → Authentication → Settings → Authorized domains: Add domain → «${host}» нэмнэ үү. ` +
+      `Vercel preview (*.vercel.app) ашиглавал тухайн бүтэн домэйноо бас нэм (${origin}).`
+    );
+  }
+
+  if (code === 'auth/operation-not-allowed') {
+    return 'Firebase дээр Google нэвтрэлт идэвхгүй байна. Authentication → Sign-in method → Google-ийг асаана уу.';
+  }
+
+  return null;
+}
+
+/**
  * Single Firebase app instance, or null if env is not configured.
  * Web API keys are not secret; still keep them in env so builds stay flexible.
  */
