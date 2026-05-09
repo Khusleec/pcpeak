@@ -15,6 +15,7 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const TournamentsPage = lazy(() => import('./pages/TournamentsPage'));
 const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage'));
 const CreateTournamentPage = lazy(() => import('./pages/CreateTournamentPage'));
+const EditTournamentPage = lazy(() => import('./pages/EditTournamentPage'));
 
 function LoadingFallback() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/tournaments" element={<TournamentsPage />} />
           <Route path="/tournaments/new" element={<CreateTournamentPage />} />
           <Route path="/tournaments/:id" element={<TournamentDetailPage />} />
+          <Route path="/tournaments/:id/edit" element={<EditTournamentPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </Suspense>

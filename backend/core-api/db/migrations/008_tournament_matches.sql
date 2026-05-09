@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS tournament_matches (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    tournament_id   INT NOT NULL,
+    player1_id      CHAR(36) NULL,
+    player2_id      CHAR(36) NULL,
+    winner_id       CHAR(36) NULL,
+    round           INT NOT NULL DEFAULT 1,
+    match_order     INT NOT NULL DEFAULT 1,
+    score1          INT DEFAULT 0,
+    score2          INT DEFAULT 0,
+    status          ENUM('pending', 'live', 'finished') NOT NULL DEFAULT 'pending',
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_tm_tournament FOREIGN KEY (tournament_id) REFERENCES tournaments (id) ON DELETE CASCADE,
+    CONSTRAINT fk_tm_player1 FOREIGN KEY (player1_id) REFERENCES users (id) ON DELETE SET NULL,
+    CONSTRAINT fk_tm_player2 FOREIGN KEY (player2_id) REFERENCES users (id) ON DELETE SET NULL,
+    CONSTRAINT fk_tm_winner FOREIGN KEY (winner_id) REFERENCES users (id) ON DELETE SET NULL,
+    INDEX idx_tm_tournament (tournament_id),
+    INDEX idx_tm_round (tournament_id, round)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

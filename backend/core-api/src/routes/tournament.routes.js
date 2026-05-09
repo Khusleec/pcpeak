@@ -7,6 +7,7 @@ const {
   createTournamentSchema,
   updateTournamentSchema,
 } = require('../validators/tournament.validator');
+const { matchUpdateSchema, createMatchesSchema } = require('../validators/match.validator');
 
 const router = express.Router();
 
@@ -344,6 +345,112 @@ router.delete('/:id/register', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Tournament unregister:', err);
     res.status(500).json({ error: 'Бүртгэл цуцлахад алдаа гарлаа' });
+  }
+});
+
+// ─── List participants ─────────────────────────────────────
+router.get('/:id/participants', optionalAuthenticateToken, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id) || id < 1) {
+    return res.status(400).json({ error: 'Тэмцээний ID буруу байна' });
+  }
+  try {
+    const rows = await pool.query(
+      `SELECT tr.id, tr.user_id, tr.in_game_name, tr.created_at,
+              u.display_name, u.avatar_url
+       FROM tournament_registrations tr
+       JOIN users u ON tr.user_id = u.id
+       WHERE tr.tournament_id = ?
+       ORDER BY tr.created_at ASC`,
+      [id]
+    );
+    res.json(rows.rows);
+  } catch (err) {
+    console.error('List participants:', err);
+    res.status(500).json({ error: 'Оролцогчдын жагсаалт татаж чадсангүй' });
+  }
+});
+
+// ─── List matches ──────────────────────────────────────────
+router.get('/:id/matches', optionalAuthenticateToken, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  try {
+    const rows = await pool.query(
+      `SELECT m.*,
+              u1.display_name AS p1_name, u1.avatar_url AS p1_avatar,
+              u2.display_name AS p2_name, u2.avatar_url AS p2_avatar,
+              uw.display_name AS winner_name
+       FROM tournament_matches m
+       LEFT JOIN users u1 ON m.player1_id = u1.id
+       LEFT JOIN users u2 ON m.player2_id = u2.id
+       LEFT JOIN users uw ON m.winner_id = uw.id
+       WHERE m.tournament_id = ?
+       ORDER BY m.round ASC, m.match_order ASC`,
+      [id]
+    );
+    res.json(rows.rows);
+  } catch (err) {
+    console.error('List matches:', err);
+    res.status(500).json({ error: 'Тоглолтын хуваарь татаж чадсангүй' });
+  }
+});
+
+// ─── Create matches (organizer only) ───────────────────────
+router.post('/:id/matches', authenticateToken, validate(createMatchesSchema), async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const tRows = await pool.query('SELECT created_by FROM tournaments WHERE id = ?', [id]);
+  if (tRows.rows.length === 0) return res.status(404).json({ error: 'Тэмцээн олдсонгүй' });
+  if (tRows.rows[0].created_by !== req.user.id) return res.status(403).json({ error: 'Зөвхөн зохион байгуулагч' });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    for (const m of req.body) {
+      await client.query(
+        `INSERT INTO tournament_matches (tournament_id, player1_id, player2_id, round, match_order)
+         VALUES (?, ?, ?, ?, ?)`,
+        [id, m.player1_id, m.player2_id, m.round, m.match_order]
+      );
+    }
+    await client.query('COMMIT');
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Create matches:', err);
+    res.status(500).json({ error: 'Тоглолт үүсгэхэд алдаа гарлаа' });
+  } finally {
+    client.release();
+  }
+});
+
+// ─── Update match result (organizer only) ──────────────────
+router.patch('/:id/matches/:matchId', authenticateToken, validate(matchUpdateSchema), async (req, res) => {
+  const { id, matchId } = req.params;
+  const tRows = await pool.query('SELECT created_by FROM tournaments WHERE id = ?', [id]);
+  if (tRows.rows.length === 0) return res.status(404).json({ error: 'Тэмцээн олдсонгүй' });
+  if (tRows.rows[0].created_by !== req.user.id) return res.status(403).json({ error: 'Зөвхөн зохион байгуулагч' });
+
+  const patch = req.body;
+  const cols = [];
+  const vals = [];
+  if ('score1' in patch) { cols.push('score1 = ?'); vals.push(patch.score1); }
+  if ('score2' in patch) { cols.push('score2 = ?'); vals.push(patch.score2); }
+  if ('winner_id' in patch) { cols.push('winner_id = ?'); vals.push(patch.winner_id); }
+  if ('status' in patch) { cols.push('status = ?'); vals.push(patch.status); }
+
+  if (cols.length === 0) return res.status(400).json({ error: 'Шинэчлэх талбар байхгүй' });
+
+  vals.push(matchId, id);
+  try {
+    const result = await pool.query(
+      `UPDATE tournament_matches SET ${cols.join(', ')} WHERE id = ? AND tournament_id = ?`,
+      vals
+    );
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Тоглолт олдсонгүй' });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Update match:', err);
+    res.status(500).json({ error: 'Тоглолт шинэчлэхэд алдаа гарлаа' });
   }
 });
 
