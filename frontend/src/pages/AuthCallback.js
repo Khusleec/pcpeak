@@ -1,16 +1,42 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import api from '../api/axios';
 
 /**
- * Хуучин OAuth callback зам — үлдээсэн холбоосоос /login руу шилжинэ.
- * Нэвтрэлт бол имэйл/нууцаар (/login).
+ * Google OAuth callback page.
+ * Receives one-time 'code' from backend and exchanges it for a JWT.
  */
 export default function AuthCallback() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { login } = useAuth();
+  const hasExchanged = useRef(false);
 
   useEffect(() => {
-    navigate('/login', { replace: true });
-  }, [navigate]);
+    const code = searchParams.get('code');
+    
+    if (!code) {
+      navigate('/login?error=no_code', { replace: true });
+      return;
+    }
+
+    if (hasExchanged.current) return;
+    hasExchanged.current = true;
+
+    async function exchangeCode() {
+      try {
+        const { data } = await api.post('/auth/exchange', { code });
+        login(data.token, data.user);
+        navigate('/', { replace: true });
+      } catch (err) {
+        console.error('Exchange failed:', err);
+        navigate('/login?error=auth_failed', { replace: true });
+      }
+    }
+
+    exchangeCode();
+  }, [searchParams, login, navigate]);
 
   return (
     <div className="login-page">
@@ -24,6 +50,9 @@ export default function AuthCallback() {
           <span>// ШИЛЖИЖ БАЙНА</span>
         </div>
         <h1>НЭВТРЭЛТ<span className="blink">...</span></h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 10 }}>
+          GOOGLE-ЭЭР БАТАЛГААЖУУЛЖ БАЙНА
+        </p>
       </div>
     </div>
   );

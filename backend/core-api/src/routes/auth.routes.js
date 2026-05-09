@@ -1,12 +1,130 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const pool = require('../db/pool');
+const config = require('../config');
 const { generateToken, authenticateToken } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const { registerSchema, loginSchema } = require('../validators/auth.validator');
 
 const router = express.Router();
+const client = new OAuth2Client(config.google.clientId, config.google.clientSecret, config.google.redirectUri);
+
+// ─── Google OAuth ───────────────────────────────────────────
+
+/**
+ * Step 1: Redirect to Google
+ */
+router.get('/google', (req, res) => {
+  const url = client.generateAuthUrl({
+    access_type: 'offline',
+    scope: ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email'],
+    prompt: 'select_account',
+  });
+  res.redirect(url);
+});
+
+/**
+ * Step 2: Google Callback
+ */
+router.get('/google/callback', async (req, res) => {
+  const { code } = req.query;
+  if (!code) return res.redirect(`${config.frontendUrl}/login?error=no_code`);
+
+  try {
+    const { tokens } = await client.getToken(code);
+    client.setCredentials(tokens);
+
+    // Verify ID token
+    const ticket = await client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: config.google.clientId,
+    });
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    // Find or create user
+    let userResult = await pool.query('SELECT id FROM users WHERE google_id = ? OR email = ?', [googleId, email]);
+    let userId;
+
+    if (userResult.rows.length === 0) {
+      userId = uuidv4();
+      await pool.query(
+        `INSERT INTO users (id, google_id, email, display_name, avatar_url, role_id)
+         VALUES (?, ?, ?, ?, ?, 3)`,
+        [userId, googleId, email, name, picture]
+      );
+    } else {
+      userId = userResult.rows[0].id;
+      // Update google_id if it was a local user before
+      await pool.query(
+        `UPDATE users SET google_id = ?, avatar_url = ? WHERE id = ?`,
+        [googleId, picture, userId]
+      );
+    }
+
+    // Generate one-time exchange code
+    const exchangeCode = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    await pool.query(
+      `INSERT INTO oauth_exchange_codes (code, user_id, expires_at) VALUES (?, ?, ?)`,
+      [exchangeCode, userId, expiresAt]
+    );
+
+    res.redirect(`${config.frontendUrl}/auth/callback?code=${exchangeCode}`);
+  } catch (err) {
+    console.error('Google callback error:', err);
+    res.redirect(`${config.frontendUrl}/login?error=auth_failed`);
+  }
+});
+
+/**
+ * Step 3: Exchange code for JWT
+ */
+router.post('/exchange', async (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Code is required' });
+
+  try {
+    const result = await pool.query(
+      `SELECT e.user_id, u.email, u.display_name, u.avatar_url, r.name AS role
+       FROM oauth_exchange_codes e
+       JOIN users u ON e.user_id = u.id
+       JOIN roles r ON u.role_id = r.id
+       WHERE e.code = ? AND e.used = 0 AND e.expires_at > NOW()`,
+      [code]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid or expired exchange code' });
+    }
+
+    const user = result.rows[0];
+    const userId = user.user_id;
+
+    // Mark code as used
+    await pool.query('UPDATE oauth_exchange_codes SET used = 1 WHERE code = ?', [code]);
+
+    const token = generateToken({ id: userId, email: user.email });
+
+    res.json({
+      token,
+      user: {
+        id: userId,
+        email: user.email,
+        display_name: user.display_name,
+        avatar_url: user.avatar_url,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    console.error('Exchange error:', err);
+    res.status(500).json({ error: 'Token exchange failed' });
+  }
+});
 
 // ─── Local Register ─────────────────────────────────────────
 router.post('/register', validate(registerSchema), async (req, res) => {

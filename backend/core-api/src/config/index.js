@@ -131,4 +131,9 @@ module.exports = {
       ebarimtReceiverType: (process.env.QPAY_EBARIMT_RECEIVER_TYPE || 'CITIZEN').trim(),
     };
   })(),
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    redirectUri: process.env.GOOGLE_REDIRECT_URI,
+  },
 };

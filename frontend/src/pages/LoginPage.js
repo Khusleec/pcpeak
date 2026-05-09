@@ -2,14 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
+import { getApiBaseUrl } from '../api/apiBase';
 import { AlertOctagon } from 'lucide-react';
-
-function legacyOAuthQueryMessage(code) {
-  if (code === 'oauth_failed' || code === 'google_oauth_misconfigured') {
-    return 'Энэ замаар Google нэвтрэлт идэвхгүй. Имэйл болон нууцаар нэвтэрнэ үү.';
-  }
-  return '';
-}
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -21,9 +15,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const legacy = legacyOAuthQueryMessage(searchParams.get('error'));
-    if (legacy) {
-      setError(legacy);
+    const err = searchParams.get('error');
+    if (err) {
+      if (err === 'auth_failed') setError('Google-ээр нэвтрэхэд алдаа гарлаа');
+      if (err === 'no_code') setError('Google-ээс мэдээлэл ирсэнгүй');
+      
       const next = new URLSearchParams(searchParams);
       next.delete('error');
       setSearchParams(next, { replace: true });
@@ -45,6 +41,10 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = `${getApiBaseUrl()}/auth/google`;
+  };
+
   return (
     <div className="login-page">
       <div className="login-card">
@@ -59,10 +59,6 @@ export default function LoginPage() {
             <span>// НЭВТРЭХ :: EMAIL_AUTH</span>
           </div>
           <h1>СИСТЕМД<br /><span style={{ color: 'var(--red)' }}>НЭВТРЭХ</span></h1>
-          <div className="login-meta">
-            &gt; И-МЭЙЛ · НУУЦ ҮГ<br />
-            &gt; ШИФРЛЭЛТ :: TLS
-          </div>
         </div>
 
         {error && (
@@ -102,6 +98,28 @@ export default function LoginPage() {
             {loading ? 'УНШИЖ БАЙНА…' : 'НЭВТРЭХ'}
           </button>
         </form>
+
+        <div style={{ marginTop: 16 }}>
+          <button 
+            type="button" 
+            className="btn" 
+            style={{ 
+              width: '100%', 
+              backgroundColor: '#fff', 
+              color: '#000', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              gap: '10px',
+              border: '1px solid #ddd'
+            }} 
+            onClick={handleGoogleLogin}
+            disabled={loading}
+          >
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18" height="18" />
+            GOOGLE-ЭЭР НЭВТРЭХ
+          </button>
+        </div>
 
         <p style={{ marginTop: 20, color: 'var(--text-muted)', fontSize: 12, textAlign: 'center', lineHeight: 1.5 }}>
           Бүртгэлгүй юу?{' '}
