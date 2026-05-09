@@ -4,14 +4,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Trophy, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-function toLocalInput(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
+import { toDatetimeLocalValue } from '../utils/datetimeLocal';
 
 function fromLocalInput(v) {
   if (!v) return '';
@@ -98,8 +91,8 @@ export default function CreateTournamentPage() {
     const e = new Date(s.getTime() + 4 * 3600000);
     setForm((f) => ({
       ...f,
-      starts_at: toLocalInput(s.toISOString()),
-      ends_at: toLocalInput(e.toISOString()),
+      starts_at: toDatetimeLocalValue(s),
+      ends_at: toDatetimeLocalValue(e),
     }));
   }, []);
 

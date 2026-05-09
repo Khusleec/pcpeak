@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import api from '../api/axios';
 import { pickQpayLink } from '../utils/qpay';
 import {
@@ -35,6 +35,12 @@ export default function BookingsPage() {
     simulatePaymentAllowed: false,
   });
   const [searchParams, setSearchParams] = useSearchParams();
+  const [, bumpClock] = useReducer((x) => x + 1, 0);
+
+  useEffect(() => {
+    const id = setInterval(() => bumpClock(), 30000);
+    return () => clearInterval(id);
+  }, []);
 
   const fetchBookings = () => {
     api.get('/bookings/my')

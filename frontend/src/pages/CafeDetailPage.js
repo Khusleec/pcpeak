@@ -7,6 +7,7 @@ import PCGrid from '../components/PCGrid';
 import BookingSummary from '../components/BookingSummary';
 import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { toDatetimeLocalValue } from '../utils/datetimeLocal';
 
 export default function CafeDetailPage() {
   const { id } = useParams();
@@ -34,8 +35,8 @@ export default function CafeDetailPage() {
   useEffect(() => {
     const now = new Date();
     const oneHourLater = new Date(now.getTime() + 3600000);
-    setStartsAt(now.toISOString().slice(0, 16));
-    setEndsAt(oneHourLater.toISOString().slice(0, 16));
+    setStartsAt(toDatetimeLocalValue(now));
+    setEndsAt(toDatetimeLocalValue(oneHourLater));
   }, []);
 
   const fetchPCs = useCallback(() => {
@@ -157,7 +158,7 @@ export default function CafeDetailPage() {
           <div className="panel-header">
             <span className="label label-red">// 001 — ЦАГ СОНГОХ</span>
             <span className="mono" style={{ color: 'var(--text-dim)', fontSize: 10, textTransform: 'none' }}>
-              UTC+08
+              {Intl.DateTimeFormat().resolvedOptions().timeZone}
             </span>
           </div>
           <div className="time-inputs-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
