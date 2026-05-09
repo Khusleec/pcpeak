@@ -27,10 +27,26 @@
   --fs-body: 10px;
   --fs-display: 24px;
 
+  /* Aliases (used in JS inline styles + toast) */
+  --border: #27272a;
+  --bg-card: #09090b;
+  --text-primary: #ffffff;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
   /* Geometry */
   --clip-btn: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
   --clip-panel: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
   --clip-tag: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
 
 /* ─── Reset ─────────────────────────────────────────────── */
@@ -88,8 +104,17 @@ body::after {
   z-index: 1;
 }
 
-a { color: var(--red); text-decoration: none; transition: opacity 0.1s; }
-a:hover { opacity: 0.7; }
+a { color: var(--red); text-decoration: none; transition: opacity 0.1s, color 0.12s var(--ease-out); }
+a:hover { opacity: 0.85; }
+
+.btn:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
 
 ::selection { background: var(--red); color: var(--bg); }
 
@@ -308,7 +333,9 @@ p, span, label, button, input, a, div {
 
 /* ─── Navbar ────────────────────────────────────────────── */
 .navbar {
-  background: var(--bg);
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line-bright);
   height: 56px;
   display: flex;
@@ -981,8 +1008,224 @@ p, span, label, button, input, a, div {
   clip-path: var(--clip-tag);
 }
 .booking-status.confirmed { color: var(--emerald); }
+.booking-status.pending_payment { color: var(--amber); }
 .booking-status.cancelled { color: var(--red); }
 .booking-status.completed { color: var(--text-muted); }
+
+/* ─── Inline notices (bookings, settings hints) ─────────── */
+.notice-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.notice-banner {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 18px;
+  background: var(--surface-1);
+  border: 1px solid var(--line-bright);
+  border-left: 3px solid var(--text-dim);
+  transition: border-color 0.15s var(--ease-out), box-shadow 0.15s var(--ease-out);
+}
+
+.notice-banner:hover {
+  border-color: var(--line-bright);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.notice-banner__icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--text-muted);
+}
+
+.notice-banner__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notice-banner__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.notice-banner__text {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: none;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.notice-banner--amber {
+  border-left-color: var(--amber);
+}
+.notice-banner--amber .notice-banner__icon {
+  color: var(--amber);
+}
+
+.notice-banner--red {
+  border-left-color: var(--red);
+}
+.notice-banner--red .notice-banner__icon {
+  color: var(--red);
+}
+
+.notice-banner--warn {
+  border-left-color: rgba(245, 158, 11, 0.65);
+}
+.notice-banner--warn .notice-banner__icon {
+  color: var(--amber);
+}
+
+.notice-banner--neutral .notice-banner__icon {
+  color: var(--text-dim);
+}
+
+/* ─── Booking card refinement ─────────────────────────────── */
+.booking-card__date-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: var(--fs-body);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  margin-bottom: 12px;
+}
+
+.booking-card__date-row svg {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.booking-card__tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.booking-card__aside {
+  text-align: right;
+}
+
+.booking-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 240px;
+  margin-top: 4px;
+}
+
+.booking-card-actions:empty {
+  display: none;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-outline-amber {
+  background: transparent;
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.btn-outline-amber:hover {
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--amber);
+  border-color: var(--amber);
+}
+
+.section-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--line-bright);
+  background: var(--surface-2);
+  color: var(--text-dim);
+}
+
+/* ─── Google sign-in (matches terminal chrome) ──────────── */
+.btn-google {
+  width: 100%;
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+  letter-spacing: 0.18em;
+}
+.btn-google:hover {
+  background: var(--surface-3);
+  border-color: var(--surface-3);
+  color: var(--text);
+}
+.btn-google:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.login-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.login-footer a {
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ─── App route loading ───────────────────────────────────── */
+.app-loading {
+  min-height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: var(--text-muted);
+  padding: 48px 24px;
+}
+
+.app-loading__label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
 
 /* ─── Hero ──────────────────────────────────────────────── */
 .hero {
@@ -1265,11 +1508,17 @@ p, span, label, button, input, a, div {
     gap: 8px;
     align-items: center;
   }
+  .booking-card-actions {
+    max-width: none;
+    margin-left: 0;
+    width: 100%;
+  }
   .booking-card .display { font-size: 20px; }
 
   /* Section headers */
   .section-head { flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 16px; }
   .section-title { font-size: 20px; }
+  .section-meta-row { justify-content: flex-start; width: 100%; }
 
   /* Chat widget */
   .chat-widget { bottom: 16px; right: 12px; }

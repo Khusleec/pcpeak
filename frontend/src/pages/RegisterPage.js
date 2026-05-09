@@ -45,10 +45,9 @@ export default function RegisterPage() {
             <span className="dot alert" />
             <span>// БҮРТГЭЛ :: EMAIL_AUTH</span>
           </div>
-          <h1>ШАТАНД<br /><span style={{ color: 'var(--red)' }}>ОРОХ</span></h1>
+          <h1>ХЭРЭГЛЭГЧЭЭР<br /><span style={{ color: 'var(--red)' }}>БҮРТГҮҮЛЭХ</span></h1>
           <div className="login-meta">
-            &gt; ОВОГ НЭР ҮЗҮҮЛЭХ НЭР<br />
-            &gt; И-МЭЙЛ · НУУЦ ҮГ (8+ ТЭМДЭГТ)
+            &gt; ХАРУУЛАХ НЭР · И-МЭЙЛ · НУУЦ ҮГ (ХАМГИЙН БАГАДАА 8 ТЭМДЭГТ)
           </div>
         </div>
 
@@ -101,12 +100,12 @@ export default function RegisterPage() {
             />
           </div>
           <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
-            {loading ? 'УНШИЖ БАЙНА…' : 'БҮРТГҮЛЭХ'}
+            {loading ? 'ИЛГЭЭЖ БАЙНА…' : 'БҮРТГҮЛЭХ'}
           </button>
         </form>
 
         <p style={{ marginTop: 20, color: 'var(--text-muted)', textAlign: 'center', fontSize: 12 }}>
-          Бүртгэлтэй юу? <Link to="/login" style={{ color: 'var(--red)' }}>// НЭВТРЭХ</Link>
+          Бүртгэлтэй юу? <Link to="/login" style={{ color: 'var(--red)' }}>НЭВТРЭХ</Link>
         </p>
       </div>
     </div>

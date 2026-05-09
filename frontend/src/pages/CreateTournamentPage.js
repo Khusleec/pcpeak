@@ -51,7 +51,7 @@ export default function CreateTournamentPage() {
 
   useEffect(() => {
     if (!user) {
-      toast.error('НЭВТРЭНЭ ҮҮ');
+      toast.error('НЭВТЭРНЭ ҮҮ');
       navigate('/login', { replace: true, state: { from: '/tournaments/new' } });
     }
   }, [user, navigate]);

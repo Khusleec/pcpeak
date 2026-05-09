@@ -19,8 +19,14 @@ const EditTournamentPage = lazy(() => import('./pages/EditTournamentPage'));
 
 function LoadingFallback() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: 'var(--text-muted)' }}>
-      Loading...
+    <div className="app-loading" role="status" aria-live="polite">
+      <span className="spin-square" aria-hidden />
+      <div>
+        <div className="app-loading__label">Систем ачаалж байна</div>
+        <div className="mono" style={{ marginTop: 8, fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.12em', textAlign: 'center' }}>
+          MONGOL//PC · хуудас ачаалж байна
+        </div>
+      </div>
     </div>
   );
 }

@@ -64,7 +64,7 @@ export default function TournamentsPage() {
             </div>
             <h3 style={{ marginBottom: 8 }}>ТЭМЦЭЭН БАЙХГҮЙ</h3>
             <p className="label" style={{ marginBottom: 24 }}>
-              SEED АЖИЛЛУУЛСНЫ ДАРАА ДАХИН ШАЛГАНА УУ
+              Өгөгдөл нэмсэн бол хуудсаа дахин ачаална уу
             </p>
           </div>
         ) : (

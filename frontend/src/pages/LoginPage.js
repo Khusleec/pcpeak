@@ -94,36 +94,25 @@ export default function LoginPage() {
               disabled={loading}
             />
           </div>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
-            {loading ? 'УНШИЖ БАЙНА…' : 'НЭВТРЭХ'}
+          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+            {loading ? 'Илгээгдэж байна…' : 'Нэвтрэх'}
           </button>
         </form>
 
-        <div style={{ marginTop: 16 }}>
-          <button 
-            type="button" 
-            className="btn" 
-            style={{ 
-              width: '100%', 
-              backgroundColor: '#fff', 
-              color: '#000', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              gap: '10px',
-              border: '1px solid #ddd'
-            }} 
-            onClick={handleGoogleLogin}
-            disabled={loading}
-          >
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18" height="18" />
-            GOOGLE-ЭЭР НЭВТРЭХ
-          </button>
-        </div>
+        <div className="login-divider">эсвэл</div>
 
-        <p style={{ marginTop: 20, color: 'var(--text-muted)', fontSize: 12, textAlign: 'center', lineHeight: 1.5 }}>
-          Бүртгэлгүй юу?{' '}
-          <Link to="/register" style={{ color: 'var(--red)' }}>Шинэ бүртгэл</Link>
+        <button
+          type="button"
+          className="btn btn-google"
+          onClick={handleGoogleLogin}
+          disabled={loading}
+        >
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" width={18} height={18} />
+          Google-ээр нэвтрэх
+        </button>
+
+        <p className="login-footer">
+          Бүртгэлгүй юу? <Link to="/register">Шинэ бүртгэл</Link>
         </p>
       </div>
     </div>

@@ -75,7 +75,7 @@ export default function BookingSummary({ selectedPCs, tiers, startsAt, endsAt, o
 
       {!depositFlow && (
         <p className="label" style={{ textAlign: 'center', marginTop: 10, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          Төлбөрийн горим: орон нутгийн (QPay тохируулаагүй). Захиалга шууд баталгаажина — «Миний захиалга»-д төлбөрийн товч гарахгүй.
+          Төлбөрийн горим: орон нутгийн (QPay тохируулаагүй). Захиалга шууд баталгаажуулна — «Миний захиалга» хэсэгт төлбөрийн товч гарахгүй.
         </p>
       )}
 

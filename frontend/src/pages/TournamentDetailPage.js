@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Trophy, ArrowLeft, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatMnDateTime } from '../utils/formatMnDateTime';
 
 const STATUS = {
   registration: 'БҮРТГЭЛ НЭЭЛТТЭЙ',
@@ -119,7 +120,7 @@ export default function TournamentDetailPage() {
 
   const register = async () => {
     if (!user) {
-      toast.error('НЭВТРЭНЭ ҮҮ');
+      toast.error('НЭВТЭРНЭ ҮҮ');
       return;
     }
     setBusy(true);
@@ -284,7 +285,7 @@ export default function TournamentDetailPage() {
               fontSize: 12,
             }}
           >
-            ТОГЛОЛТ ХУВААРЬ
+            ТОГЛОЛТЫН ХУВААРЬ
           </button>
         </div>
 
@@ -304,19 +305,19 @@ export default function TournamentDetailPage() {
                 <div>
                   <div className="label" style={{ marginBottom: 4 }}>// ЭХЛЭХ</div>
                   <div className="mono" style={{ color: 'var(--text)', textTransform: 'none' }}>
-                    {new Date(t.starts_at).toLocaleString('mn-MN')}
+                    {formatMnDateTime(t.starts_at)}
                   </div>
                 </div>
                 <div>
                   <div className="label" style={{ marginBottom: 4 }}>// ДУУСАХ</div>
                   <div className="mono" style={{ color: 'var(--text)', textTransform: 'none' }}>
-                    {new Date(t.ends_at).toLocaleString('mn-MN')}
+                    {formatMnDateTime(t.ends_at)}
                   </div>
                 </div>
                 <div>
-                  <div className="label" style={{ marginBottom: 4 }}>// БҮРТГЭЛ ХУРААМЖ</div>
+                  <div className="label" style={{ marginBottom: 4 }}>// БҮРТГЭЛИЙН ЭЦСИЙН ХУГАЦАА</div>
                   <div className="mono" style={{ color: 'var(--text)', textTransform: 'none' }}>
-                    {deadline ? new Date(deadline).toLocaleString('mn-MN') : '—'}
+                    {deadline ? formatMnDateTime(deadline) : '—'}
                   </div>
                 </div>
                 <div>
@@ -420,7 +421,7 @@ export default function TournamentDetailPage() {
                       <th className="label" style={{ padding: '12px 16px' }}>#</th>
                       <th className="label" style={{ padding: '12px 16px' }}>ТОГЛОГЧ</th>
                       <th className="label" style={{ padding: '12px 16px' }}>ТОГЛООМ ДЭЭРХ НЭР</th>
-                      <th className="label" style={{ padding: '12px 16px' }}>ХУГАЦАА</th>
+                      <th className="label" style={{ padding: '12px 16px' }}>БҮРТГЭЛИЙН ОГНОО</th>
                     </tr>
                   </thead>
                   <tbody>
