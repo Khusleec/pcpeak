@@ -3,6 +3,7 @@ import { Terminal, X, ArrowUp, MessageSquarePlus } from 'lucide-react';
 import axios from 'axios';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { pollAgentTask } from '../utils/pollAgentTask';
 
 const WELCOME_MESSAGE = {
   role: 'assistant',
@@ -61,17 +62,34 @@ export default function ChatWidget() {
     chatAbortRef.current = controller;
 
     try {
-      const { data } = await api.post(
+      const response = await api.post(
         '/agent/chat',
         { message: userMsg, history },
         { signal: controller.signal }
       );
       if (chatAbortRef.current !== controller) return;
-      setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }]);
+
+      let replyText;
+      if (response.status === 202 && response.data?.taskId) {
+        replyText = await pollAgentTask(api, response.data.taskId, {
+          signal: controller.signal,
+        });
+      } else if (response.data?.reply != null && response.data.reply !== '') {
+        replyText = String(response.data.reply);
+      } else {
+        replyText = '> АЛДАА :: Хариу ирээгүй\n> Дахин оролдоно уу';
+      }
+
+      if (chatAbortRef.current !== controller) return;
+      setMessages((prev) => [...prev, { role: 'assistant', content: replyText }]);
     } catch (err) {
       if (axios.isCancel(err) || err.code === 'ERR_CANCELED') return;
       if (chatAbortRef.current !== controller) return;
-      setMessages((prev) => [...prev, { role: 'assistant', content: '> АЛДАА :: илгээж чадсангүй\n> Дахин оролдоно уу' }]);
+      const fallback =
+        err.agentTimeout || err.agentError
+          ? `> ${String(err.message)}`
+          : '> АЛДАА :: илгээж чадсангүй\n> Дахин оролдоно уу';
+      setMessages((prev) => [...prev, { role: 'assistant', content: fallback }]);
     } finally {
       if (chatAbortRef.current === controller) {
         chatAbortRef.current = null;

@@ -20,16 +20,16 @@ export default function MapPage() {
           <CafeMap />
         </Suspense>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 0, border: '1px solid var(--line-bright)', borderTop: 'none' }}>
-          <div style={{ padding: '14px 18px', borderRight: '1px solid var(--line-bright)' }}>
+        <div className="map-stats-strip">
+          <div className="map-stats-cell" style={{ padding: '14px 18px', borderRight: '1px solid var(--line-bright)' }}>
             <div className="label" style={{ marginBottom: 4 }}>// ХУРД</div>
             <div className="mono" style={{ color: 'var(--emerald)', fontSize: 10, letterSpacing: '0.06em', textTransform: 'none' }}>◆ 12MS // САЙН</div>
           </div>
-          <div style={{ padding: '14px 18px', borderRight: '1px solid var(--line-bright)' }}>
+          <div className="map-stats-cell" style={{ padding: '14px 18px', borderRight: '1px solid var(--line-bright)' }}>
             <div className="label" style={{ marginBottom: 4 }}>// ХАМРАХ ХҮРЭЭ</div>
             <div className="mono" style={{ color: 'var(--text)', fontSize: 10, letterSpacing: '0.06em', textTransform: 'none' }}>УБ::ТӨВ_ХЭСЭГ</div>
           </div>
-          <div style={{ padding: '14px 18px' }}>
+          <div className="map-stats-cell" style={{ padding: '14px 18px' }}>
             <div className="label" style={{ marginBottom: 4 }}>// ТЕХНОЛОГИ</div>
             <div className="mono" style={{ color: 'var(--text)', fontSize: 10, letterSpacing: '0.06em', textTransform: 'none' }}>CARTO_DARK // LEAFLET.JS</div>
           </div>

@@ -241,7 +241,7 @@ export default function TournamentDetailPage() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid var(--border)', marginBottom: 24 }}>
+        <div className="detail-tab-bar">
           <button
             className="mono"
             onClick={() => setActiveTab('info')}
@@ -414,8 +414,9 @@ export default function TournamentDetailPage() {
                 <p className="label">Одоогоор оролцогч байхгүй байна.</p>
               </div>
             ) : (
-              <div className="booking-card" style={{ padding: 0, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <div className="booking-card" style={{ padding: 0 }}>
+                <div className="table-scroll">
+                  <table style={{ width: '100%', minWidth: 520, borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
                       <th className="label" style={{ padding: '12px 16px' }}>#</th>
@@ -448,6 +449,7 @@ export default function TournamentDetailPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             )}
           </>

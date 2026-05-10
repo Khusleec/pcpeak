@@ -163,7 +163,7 @@ export default function CreateTournamentPage() {
               ))}
             </select>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="form-two-col">
             <div>
               <label className="label" style={{ display: 'block', marginBottom: 6 }}>Эхлэх</label>
               <input
@@ -197,7 +197,7 @@ export default function CreateTournamentPage() {
               style={{ width: '100%', maxWidth: 280, padding: '10px 8px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 12 }}
             />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="form-two-col">
             <div>
               <label className="label" style={{ display: 'block', marginBottom: 6 }}>Дээд оролцогч</label>
               <input

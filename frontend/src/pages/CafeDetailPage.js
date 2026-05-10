@@ -161,7 +161,7 @@ export default function CafeDetailPage() {
               {Intl.DateTimeFormat().resolvedOptions().timeZone}
             </span>
           </div>
-          <div className="time-inputs-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="time-inputs-row">
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label>// ЭХЛЭХ ЦАГ</label>
               <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
