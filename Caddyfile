@@ -1,6 +1,6 @@
 # Caddy reverse proxy with auto Let's Encrypt SSL
 # Replace {$DOMAIN} via environment variable in docker-compose.prod.yml
-
++
 {$DOMAIN} {
     encode gzip zstd
 

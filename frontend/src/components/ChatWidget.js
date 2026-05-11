@@ -62,10 +62,12 @@ export default function ChatWidget() {
     chatAbortRef.current = controller;
 
     try {
+      // Longer than core-api AGENT_RESPONSE_TIMEOUT_MS (default 30s) so axios does not
+      // abort before the API returns 200 or 202.
       const response = await api.post(
         '/agent/chat',
         { message: userMsg, history },
-        { signal: controller.signal }
+        { signal: controller.signal, timeout: 120_000 }
       );
       if (chatAbortRef.current !== controller) return;
 

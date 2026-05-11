@@ -17,7 +17,10 @@ export async function pollAgentTask(api, taskId, options = {}) {
       throw err;
     }
     await new Promise((r) => setTimeout(r, pollMs));
-    const { data } = await api.get(`/agent/tasks/${taskId}`, { signal });
+    const { data } = await api.get(`/agent/tasks/${taskId}`, {
+      signal,
+      timeout: 60_000,
+    });
     if (data.status === 'done') {
       return data.reply || 'Хариу боловсруулж чадсангүй. Дахин оролдоно уу.';
     }
