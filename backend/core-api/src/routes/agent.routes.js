@@ -10,8 +10,9 @@
  *      with the task id so the frontend can keep polling).
  *
  * This keeps the frontend's existing `POST /api/agent/chat` contract
- * (returns `{ reply }`) intact, while genuinely splitting the heavy
- * work into a separate Docker service. Real SOA, no UI rewrite.
+ * (returns `{ reply }` or `202` + taskId) intact. AGENT_CHAT_ASYNC_ONLY forces
+ * immediate 202 (good behind strict proxies). When unset, that mode defaults on
+ * RAILWAY_ENVIRONMENT / RENDER_SERVICE_NAME / FLY_APP_NAME.
  */
 
 const express = require('express');
@@ -30,6 +31,18 @@ const POLL_INTERVAL_MS = parseInt(
   process.env.AGENT_POLL_INTERVAL_MS,
   10
 ) || 500;
+
+/** Long-held POST /chat breaks many edge proxies (Railway, etc.). When true, enqueue then return 202 immediately; client polls (already implemented). */
+function agentChatAsyncOnly() {
+  const v = String(process.env.AGENT_CHAT_ASYNC_ONLY || '').trim().toLowerCase();
+  if (v === 'true' || v === '1') return true;
+  if (v === 'false' || v === '0') return false;
+  return Boolean(
+    process.env.RAILWAY_ENVIRONMENT ||
+      process.env.RENDER_SERVICE_NAME ||
+      process.env.FLY_APP_NAME
+  );
+}
 
 // ─── POST /api/agent/chat — enqueue + wait for worker ───────
 router.post('/chat', authenticateToken, async (req, res) => {
@@ -57,6 +70,10 @@ router.post('/chat', authenticateToken, async (req, res) => {
        VALUES (?, ?, ?, 'queued')`,
       [taskId, req.user.id, stored]
     );
+
+    if (agentChatAsyncOnly()) {
+      return res.status(202).json({ taskId, status: 'processing' });
+    }
 
     // Long-poll the queue row.
     const deadline = Date.now() + RESPONSE_TIMEOUT_MS;

@@ -77,17 +77,23 @@ if (config.nodeEnv === 'production') {
   app.use(morgan('dev'));
 }
 
+function skipGlobalRateLimit(req) {
+  if (req.method === 'OPTIONS') return true;
+  const url = req.originalUrl || '';
+  // Agent chat polls GET /api/agent/tasks/:id — must not burn the global budget (429s often lack CORS → browser shows "CORS" errors).
+  if (url.startsWith('/api/agent')) return true;
+  if (req.path === '/health' || url.endsWith('/health')) return true;
+  if (url.includes('/payments/qpay/callback') || url.includes('/config/public')) return true;
+  return false;
+}
+
 const limiter = rateLimit({
   windowMs: config.rateLimit.windowMs,
   limit: config.rateLimit.limit,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   skipSuccessfulRequests: config.rateLimit.skipSuccessfulRequests,
-  skip: (req) =>
-    req.path === '/health' ||
-    req.originalUrl.endsWith('/health') ||
-    req.originalUrl.includes('/payments/qpay/callback') ||
-    req.originalUrl.includes('/config/public'),
+  skip: skipGlobalRateLimit,
   validate: config.trustProxy ? { trustProxy: true } : undefined,
 });
 
