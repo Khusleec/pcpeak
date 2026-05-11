@@ -6,7 +6,7 @@ const pool = require('./pool');
 // ============================================================
 const CAFES = [
   {
-    name: 'PcPeak — Төв',
+    name: 'Mongol PC — Төв',
     address: 'Энх Тайвны өргөн чөлөө 15, Сүхбаатар дүүрэг, Улаанбаатар',
     latitude: 47.9184676,
     longitude: 106.9177016,
@@ -26,7 +26,7 @@ const CAFES = [
     vip: 4,
   },
   {
-    name: 'PcPeak — Баянгол',
+    name: 'Mongol PC — Баянгол',
     address: 'Чингисийн өргөн чөлөө 88, Баянгол дүүрэг, Улаанбаатар',
     latitude: 47.9100,
     longitude: 106.8700,
@@ -36,7 +36,7 @@ const CAFES = [
     vip: 5,
   },
   {
-    name: 'PcPeak — Сүхбаатарын талбай',
+    name: 'Mongol PC — Сүхбаатарын талбай',
     address: 'Бага тойруу 23, Сүхбаатарын талбай, Улаанбаатар',
     latitude: 47.9189,
     longitude: 106.9176,
@@ -46,7 +46,7 @@ const CAFES = [
     vip: 8,
   },
   {
-    name: 'PcPeak — Баянзүрх',
+    name: 'Mongol PC — Баянзүрх',
     address: 'Тэди төв 3-р давхар, Энх Тайвны өргөн чөлөө 47, Баянзүрх дүүрэг',
     latitude: 47.9170,
     longitude: 106.9408,
@@ -56,7 +56,7 @@ const CAFES = [
     vip: 4,
   },
   {
-    name: 'PcPeak — Шангри-Ла',
+    name: 'Mongol PC — Шангри-Ла',
     address: 'Олимпын гудамж 19A, Шангри-Ла төв, Сүхбаатар дүүрэг',
     latitude: 47.9143,
     longitude: 106.9214,
@@ -66,7 +66,7 @@ const CAFES = [
     vip: 10,
   },
   {
-    name: 'PcPeak — Сонгинохайрхан',
+    name: 'Mongol PC — Сонгинохайрхан',
     address: 'Толгойтын зам 12, Сонгинохайрхан дүүрэг, Улаанбаатар',
     latitude: 47.9266,
     longitude: 106.7833,
@@ -76,7 +76,7 @@ const CAFES = [
     vip: 3,
   },
   {
-    name: 'PcPeak — Сансар',
+    name: 'Mongol PC — Сансар',
     address: 'Сансар 4-р хороолол 25, Баянзүрх дүүрэг, Улаанбаатар',
     latitude: 47.9235,
     longitude: 106.9595,

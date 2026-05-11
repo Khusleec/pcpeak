@@ -2,7 +2,7 @@
   "name": "rigup",
   "version": "1.0.0",
   "private": true,
-  "description": "PcPeak — React SPA + SOA backend (core-api + agent-worker + MySQL). One-command launcher.",
+  "description": "Rigup — React-only frontend + SOA backend (core-api + agent-worker + MySQL). One-command launcher.",
   "scripts": {
     "start": "node infra/scripts/start.js",
     "stop": "docker compose down",
