@@ -23,7 +23,7 @@ export default function HomePage() {
           </div>
 
           <h1 className="hero-title">
-            MONGOL<span className="accent">//</span>PC<br />
+            PC<span className="accent">//</span>PEAK<br />
             <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>ЗАХИАЛГЫН_</span>
             <span className="accent">ТЕРМИНАЛ</span>
           </h1>

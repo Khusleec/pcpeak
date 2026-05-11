@@ -24,7 +24,7 @@ function LoadingFallback() {
       <div>
         <div className="app-loading__label">Систем ачаалж байна</div>
         <div className="mono" style={{ marginTop: 8, fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.12em', textAlign: 'center' }}>
-          MONGOL//PC · хуудас ачаалж байна
+          PC//PEAK · хуудас ачаалж байна
         </div>
       </div>
     </div>

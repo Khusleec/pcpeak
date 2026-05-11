@@ -23,7 +23,7 @@ export default function Navbar() {
       <div className="container">
         <Link to="/" className="navbar-brand">
           <span className="navbar-brand-mark" />
-          MONGOL<span className="navbar-brand-divider">//</span>PC
+          PC<span className="navbar-brand-divider">//</span>PEAK
           <span className="mono" style={{ marginLeft: 10, color: 'var(--text-dim)', fontSize: 10, letterSpacing: '0.06em' }}>v1.0.0</span>
         </Link>
 

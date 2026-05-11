@@ -142,7 +142,7 @@ app.use((err, req, res, _next) => {
 if (require.main === module) {
   const pool = require('./db/pool');
   app.listen(config.port, async () => {
-    console.log(`Mongol PC API on port ${config.port} (${config.nodeEnv})`);
+    console.log(`PcPeak API on port ${config.port} (${config.nodeEnv})`);
     try {
       await pool.query('SELECT 1');
       console.log('MySQL: ok');

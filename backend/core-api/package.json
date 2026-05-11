@@ -1,7 +1,7 @@
 {
-  "name": "mongolpc-backend",
+  "name": "pcpeak-backend",
   "version": "1.0.0",
-  "description": "Mongol PC Cafe Booking System - Backend API",
+  "description": "PcPeak cafe booking API",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

@@ -16,7 +16,7 @@ const tools = [
     function: {
       name: 'list_cafes',
       description:
-        'List PC cafes (Mongol PC). Call ONLY when the user clearly asks about branches, locations, or which cafes exist — not for general chat.',
+        'List PC cafes (PcPeak). Call ONLY when the user clearly asks about branches, locations, or which cafes exist — not for general chat.',
       parameters: { type: 'object', properties: {}, required: [] },
     },
   },

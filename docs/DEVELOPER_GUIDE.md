@@ -238,7 +238,7 @@ describe('POST /api/v1/auth/login', () => {
     const response = await request(app)
       .post('/api/v1/auth/login')
       .send({
-        email: 'demo@mongolpc.mn',
+        email: 'demo@pcpeak.app',
         password: 'user123'
       });
     

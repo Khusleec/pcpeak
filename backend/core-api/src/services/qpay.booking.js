@@ -89,7 +89,7 @@ async function issueDepositInvoice(bookingId, userId) {
     throw err;
   }
 
-  const description = `Mongol PC — 30% барьцаа (${b.cafe_name || 'cafe'})`.slice(0, 500);
+  const description = `PcPeak — 30% барьцаа (${b.cafe_name || 'cafe'})`.slice(0, 500);
   const payload = buildInvoicePayload({
     bookingId,
     amount: deposit,
