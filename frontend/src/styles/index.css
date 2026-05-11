@@ -518,9 +518,9 @@ p, span, label, button, input, a, div {
   height: 520px;
   position: relative;
   box-shadow:
-    0 0 28px rgba(255, 0, 0, 0.12),
-    inset 0 0 100px rgba(255, 0, 0, 0.04);
-  background: #0d0d0d;
+    0 0 24px rgba(255, 0, 0, 0.1),
+    inset 0 0 80px rgba(255, 255, 255, 0.04);
+  background: #ececec;
   overflow: hidden;
 }
 /* Leaflet above any future overlays — old ::before at z-index 401 sat on top and hid markers */
@@ -529,10 +529,10 @@ p, span, label, button, input, a, div {
   z-index: 1;
   height: 100%;
   width: 100%;
-  background: #121212;
+  background: #dfe6ee;
 }
 .leaflet-container .leaflet-tile-pane {
-  filter: saturate(0.96) brightness(1.08) contrast(1.03);
+  filter: saturate(1.05) brightness(1.06) contrast(1.02);
 }
 .leaflet-container .leaflet-tile,
 .leaflet-container img.leaflet-tile {

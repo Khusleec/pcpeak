@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
@@ -29,19 +29,35 @@ function getCafeLatLng(c) {
   return [lat, lng];
 }
 
-function MapBoundsFitter({ points }) {
+/** Prefer device GPS center; otherwise fit all cafe markers (or city default). */
+function MapInitialView({ boundsPoints, userGeo }) {
   const map = useMap();
+
   useEffect(() => {
-    if (!points || points.length === 0) return;
-    try {
-      const bounds = L.latLngBounds(points);
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [52, 52], maxZoom: 14, animate: false });
+    if (userGeo === undefined) return;
+
+    if (userGeo !== null) {
+      const { lat, lng } = userGeo;
+      if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+        map.flyTo([lat, lng], 14, { duration: 0.75 });
       }
-    } catch (e) {
-      console.error('Map fitBounds:', e);
+      return;
     }
-  }, [map, points]);
+
+    if (boundsPoints.length > 0) {
+      try {
+        const bounds = L.latLngBounds(boundsPoints);
+        if (bounds.isValid()) {
+          map.fitBounds(bounds, { padding: [52, 52], maxZoom: 14, animate: false });
+        }
+      } catch (e) {
+        console.error('Map fitBounds:', e);
+      }
+    } else {
+      map.setView(UB_CENTER, 13, { animate: false });
+    }
+  }, [map, userGeo, boundsPoints]);
+
   return null;
 }
 
@@ -49,7 +65,27 @@ export default function CafeMap() {
   const [cafes, setCafes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const [userGeo, setUserGeo] = useState(undefined);
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setUserGeo(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+          setUserGeo({ lat, lng });
+        } else {
+          setUserGeo(null);
+        }
+      },
+      () => setUserGeo(null),
+      { enableHighAccuracy: true, timeout: 14000, maximumAge: 120000 }
+    );
+  }, []);
 
   const loadCafes = useCallback(() => {
     setLoading(true);
@@ -101,11 +137,23 @@ export default function CafeMap() {
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
           subdomains="abcd"
           detectRetina
         />
-        {boundsPoints.length > 0 ? <MapBoundsFitter points={boundsPoints} /> : null}
+        <MapInitialView boundsPoints={boundsPoints} userGeo={userGeo} />
+        {userGeo != null ? (
+          <CircleMarker
+            center={[userGeo.lat, userGeo.lng]}
+            radius={11}
+            pathOptions={{
+              color: '#dc2626',
+              weight: 3,
+              fillColor: '#ff0000',
+              fillOpacity: 0.22,
+            }}
+          />
+        ) : null}
         {cafesWithCoords.map((cafe) => (
           <Marker key={cafe.id} position={cafe._pos} icon={cafeIcon}>
             <Popup>
