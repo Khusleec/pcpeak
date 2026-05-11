@@ -1,7 +1,8 @@
 /**
  * Poll GET /agent/tasks/:id until worker finishes (handles POST /agent/chat returning 202).
+ * First request runs immediately (no sleep-before-poll delay).
  */
-const DEFAULT_POLL_MS = 800;
+const DEFAULT_POLL_MS = 400;
 const DEFAULT_MAX_WAIT_MS = 120_000;
 
 export async function pollAgentTask(api, taskId, options = {}) {
@@ -16,7 +17,6 @@ export async function pollAgentTask(api, taskId, options = {}) {
       err.code = 'ERR_CANCELED';
       throw err;
     }
-    await new Promise((r) => setTimeout(r, pollMs));
     const { data } = await api.get(`/agent/tasks/${taskId}`, {
       signal,
       timeout: 60_000,
@@ -29,6 +29,7 @@ export async function pollAgentTask(api, taskId, options = {}) {
       err.agentError = true;
       throw err;
     }
+    await new Promise((r) => setTimeout(r, pollMs));
   }
 
   const err = new Error('Хариу хэт удаан хүлээгдлөө. Дахин оролдоно уу.');
