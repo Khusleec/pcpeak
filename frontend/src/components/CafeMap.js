@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useNavigate } from 'react-router-dom';
+import { LocateFixed } from 'lucide-react';
 import api from '../api/axios';
 import { getApiBaseUrl } from '../api/apiBase';
 
@@ -59,6 +60,45 @@ function MapInitialView({ boundsPoints, userGeo }) {
   }, [map, userGeo, boundsPoints]);
 
   return null;
+}
+
+function LocateMeControl({ onLocated }) {
+  const map = useMap();
+  const [busy, setBusy] = useState(false);
+  const supported = typeof navigator !== 'undefined' && !!navigator.geolocation;
+
+  const handleClick = () => {
+    if (!supported || busy) return;
+    setBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+          onLocated({ lat, lng });
+          map.flyTo([lat, lng], 15, { duration: 0.65 });
+        }
+        setBusy(false);
+      },
+      () => setBusy(false),
+      { enableHighAccuracy: true, timeout: 22000, maximumAge: 0 }
+    );
+  };
+
+  return (
+    <div className="leaflet-top leaflet-right map-locate-control leaflet-bar leaflet-control">
+      <button
+        type="button"
+        className="map-locate-control__btn"
+        onClick={handleClick}
+        disabled={!supported || busy}
+        aria-label="Миний байршил руу төвлөрүүлэх"
+        title={supported ? 'GPS: миний байршил (дахин)' : 'Энэ төхөөрөмжид байршил унших боломжгүй'}
+      >
+        <LocateFixed size={18} strokeWidth={2.35} aria-hidden />
+      </button>
+    </div>
+  );
 }
 
 export default function CafeMap() {
@@ -126,7 +166,7 @@ export default function CafeMap() {
   }
 
   return (
-    <div className="map-container map-container--has-overlay">
+    <div className="map-container map-container--has-overlay map-container--light-map">
       <MapContainer
         center={UB_CENTER}
         zoom={13}
@@ -136,11 +176,13 @@ export default function CafeMap() {
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
+          key="carto-light-all"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
           subdomains="abcd"
           detectRetina
         />
+        <LocateMeControl onLocated={setUserGeo} />
         <MapInitialView boundsPoints={boundsPoints} userGeo={userGeo} />
         {userGeo != null ? (
           <CircleMarker

@@ -31,7 +31,7 @@ export default function MapPage() {
           </div>
           <div className="map-stats-cell" style={{ padding: '14px 18px' }}>
             <div className="label" style={{ marginBottom: 4 }}>// ТЕХНОЛОГИ</div>
-            <div className="mono" style={{ color: 'var(--text)', fontSize: 10, letterSpacing: '0.06em', textTransform: 'none' }}>CARTO_VOYAGER // LEAFLET.JS</div>
+            <div className="mono" style={{ color: 'var(--text)', fontSize: 10, letterSpacing: '0.06em', textTransform: 'none' }}>CARTO_LIGHT // LEAFLET.JS</div>
           </div>
         </div>
       </div>
