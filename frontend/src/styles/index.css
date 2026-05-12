@@ -1797,6 +1797,10 @@ p, span, label, button, input, a, div {
   transform: translateZ(0);
 }
 
+.intro-splash.intro-splash--run .intro-splash__frame {
+  will-change: transform, opacity;
+}
+
 .intro-splash__inner {
   display: flex;
   flex-direction: column;
