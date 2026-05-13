@@ -2,7 +2,6 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
-import IntroSplash from './components/IntroSplash';
 import ChatWidget from './components/ChatWidget';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -45,7 +44,6 @@ export default function App() {
           },
         }}
       />
-      <IntroSplash />
       <Navbar />
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
