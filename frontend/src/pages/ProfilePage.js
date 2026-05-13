@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { User, Mail, Shield, Database, LogOut, Map } from 'lucide-react';
+import { User, Mail, Shield, Database, LogOut, Map, LayoutDashboard, Layers } from 'lucide-react';
+import { isAdminRole, isModeratorRole } from '../utils/roles';
 
 export default function ProfilePage() {
   const { user, loading, logout } = useAuth();
@@ -140,6 +141,55 @@ export default function ProfilePage() {
             </button>
           </div>
         </div>
+
+        {(isAdminRole(user.role) || isModeratorRole(user.role)) && (
+          <div className="booking-card" style={{ marginBottom: 24, alignItems: 'stretch', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+              <div>
+                <div className="section-eyebrow" style={{ marginBottom: 6 }}>
+                  {isAdminRole(user.role) ? '// АДМИН — ДАВУУ ТАЛ' : '// MODERATOR — ДАВУУ ТАЛ'}
+                </div>
+                <h3 className="section-title" style={{ fontSize: 20, marginBottom: 8 }}>
+                  {isAdminRole(user.role) ? 'БҮТЭН ЭРХИЙН БАГЦ' : 'ЗАХИАЛГЫН УДИРДЛАГА'}
+                </h3>
+                <ul className="admin-benefits-list">
+                  <li>
+                    <LayoutDashboard size={14} aria-hidden />
+                    <span>
+                      <strong>Консоль</strong> — бүх хэрэглэгчийн захиалгыг нэг хүснэгтээр харах (
+                      <Link to="/admin" style={{ color: 'var(--red)' }}>
+                        /админ
+                      </Link>
+                      ).
+                    </span>
+                  </li>
+                  {isAdminRole(user.role) && (
+                    <li>
+                      <Layers size={14} aria-hidden />
+                      <span>
+                        <strong>Шинэ салбар</strong> — серверийн <code style={{ fontSize: 10, letterSpacing: 0 }}>POST /api/cafes</code> захиад шинэ кафег бүртгэх эрх зөвхөн админд.
+                      </span>
+                    </li>
+                  )}
+                  <li>
+                    <Shield size={14} aria-hidden />
+                    <span>
+                      <strong>Эрхийн түвшин</strong> — суурь API дээр сервер таны <strong style={{ color: 'var(--text)' }}>staff</strong> role-оор нэмэлт зөвшөөрөл өгнө (жишээ нь бүх захиалгыг унших).
+                    </span>
+                  </li>
+                  {isModeratorRole(user.role) && !isAdminRole(user.role) ? (
+                    <li style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'none' }}>
+                      Салбар шинээр нэмэх — зөвхөн <strong style={{ color: 'var(--text)' }}>admin</strong>; шаардлагатай бол админ руу дамжуулаарай.
+                    </li>
+                  ) : null}
+                </ul>
+              </div>
+              <Link to="/admin" className="btn btn-primary" style={{ alignSelf: 'center', padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                <LayoutDashboard size={11} /> АДМИН ХУУДАС
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="section-head" style={{ marginBottom: 12 }}>

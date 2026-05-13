@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Power, Map, Database, Terminal, Trophy } from 'lucide-react';
+import { Power, Map, Database, Terminal, Trophy, Shield } from 'lucide-react';
+import { isStaffRole } from '../utils/roles';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -15,6 +16,7 @@ export default function Navbar() {
 
   const isActive = (p) => {
     if (p === '/tournaments') return location.pathname.startsWith('/tournaments') ? 'active' : '';
+    if (p === '/admin') return location.pathname.startsWith('/admin') ? 'active' : '';
     return location.pathname === p ? 'active' : '';
   };
 
@@ -31,6 +33,9 @@ export default function Navbar() {
           <Link to="/map" className={isActive('/map')}><Map size={11} /> САЛБАРУУД</Link>
           <Link to="/tournaments" className={isActive('/tournaments')}><Trophy size={11} /> ТЭМЦЭЭН</Link>
           {user && <Link to="/bookings" className={isActive('/bookings')}><Database size={11} /> ЗАХИАЛГА</Link>}
+          {user && isStaffRole(user.role) && (
+            <Link to="/admin" className={isActive('/admin')}><Shield size={11} /> АДМИН</Link>
+          )}
         </div>
 
         <div className="navbar-user">

@@ -102,6 +102,7 @@ function LocateMeControl({ onLocated }) {
 }
 
 export default function CafeMap() {
+  const navigate = useNavigate();
   const [cafes, setCafes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

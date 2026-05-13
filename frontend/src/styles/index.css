@@ -1731,3 +1731,92 @@ p, span, label, button, input, a, div {
   .booking-card .display { font-size: 16px; }
   .btn { padding: 8px 12px; font-size: 8px; }
 }
+
+/* ─── Admin/staff console & profile benefits ───────────────── */
+.admin-table-wrap.panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.admin-bookings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.admin-bookings-table th,
+.admin-bookings-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line-bright);
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-bookings-table thead th {
+  color: var(--text-muted);
+  font-weight: 900;
+}
+
+.admin-bookings-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--line-bright);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  background: var(--surface-2);
+}
+
+.admin-status--confirmed {
+  border-color: var(--emerald);
+  color: var(--emerald);
+}
+
+.admin-status--pending_payment {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.admin-status--cancelled {
+  color: var(--text-dim);
+}
+
+.admin-status--completed {
+  color: var(--text-muted);
+}
+
+.admin-benefits-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 640px;
+}
+
+.admin-benefits-list li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0.04em;
+  line-height: 1.55;
+}
+
+.admin-benefits-list li svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--red);
+}
+
+.admin-benefits-list strong {
+  color: var(--text);
+  font-weight: 900;
+}
