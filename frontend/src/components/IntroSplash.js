@@ -1,22 +1,14 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 const STORAGE_KEY = 'rigup_intro_session_v1';
 
 function prefersReducedMotion() {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') return true;
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 function readShouldPlay() {
   if (typeof window === 'undefined') return false;
-  try {
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('replayIntro')) {
-      sessionStorage.removeItem(STORAGE_KEY);
-    }
-  } catch {
-    /* ignore */
-  }
   if (prefersReducedMotion()) return false;
   try {
     return sessionStorage.getItem(STORAGE_KEY) !== '1';
@@ -29,15 +21,6 @@ function readShouldPlay() {
 export default function IntroSplash() {
   const showIntro = useMemo(() => readShouldPlay(), []);
   const [phase, setPhase] = useState(() => (showIntro ? 'run' : 'gone'));
-  const rootRef = useRef(null);
-
-  /* Ensures initial keyframes run (Safari/Chromium sometimes skip first paint otherwise). */
-  useLayoutEffect(() => {
-    if (!showIntro || phase !== 'run') return;
-    const el = rootRef.current;
-    if (!el) return;
-    void el.offsetHeight;
-  }, [showIntro, phase]);
 
   useEffect(() => {
     if (!showIntro) return undefined;
@@ -63,7 +46,6 @@ export default function IntroSplash() {
 
   return (
     <div
-      ref={rootRef}
       className={`intro-splash${phase === 'exit' ? ' intro-splash--exit' : ''}${phase === 'run' ? ' intro-splash--run' : ''}`}
       role="presentation"
       aria-hidden="true"
