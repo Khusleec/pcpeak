@@ -86,11 +86,23 @@ async function runAgentLoop(userId, rawMessage) {
     systemInstruction: SYSTEM_PROMPT,
   });
 
+  // Google Native SDK requires history to start with 'user' and alternate roles.
+  // If history starts with 'assistant' (like our welcome message), we must drop it.
+  const sanitizedHistory = [];
+  let nextRole = 'user';
+  for (const h of history) {
+    const role = h.role === 'assistant' ? 'model' : 'user';
+    if (role === nextRole) {
+      sanitizedHistory.push({
+        role,
+        parts: [{ text: h.content }]
+      });
+      nextRole = nextRole === 'user' ? 'model' : 'user';
+    }
+  }
+
   const chat = model.startChat({
-    history: history.map(h => ({
-      role: h.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: h.content }]
-    })),
+    history: sanitizedHistory,
     tools: useTools ? [googleTools] : []
   });
 
