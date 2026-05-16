@@ -361,7 +361,7 @@ p, span, label, button, input, a, div {
 
 /* ─── Navbar ────────────────────────────────────────────── */
 .navbar-wrapper {
-  position: absolute;
+  position: fixed;
   top: 24px;
   left: 0;
   width: 100%;

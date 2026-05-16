@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Power, Map, Database, Terminal, Trophy, Shield } from 'lucide-react';
+import { Power, Database, Terminal, Trophy, Shield } from 'lucide-react';
 import { isStaffRole } from '../utils/roles';
 
 export default function Navbar() {
@@ -30,7 +30,6 @@ export default function Navbar() {
           </Link>
 
           <div className="navbar-links">
-            <Link to="/map" className={isActive('/map')}><Map size={14} /> САЛБАРУУД</Link>
             <Link to="/tournaments" className={isActive('/tournaments')}><Trophy size={14} /> ТЭМЦЭЭН</Link>
             {user && <Link to="/bookings" className={isActive('/bookings')}><Database size={14} /> ЗАХИАЛГА</Link>}
             {user && isStaffRole(user.role) && (

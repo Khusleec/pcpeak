@@ -51,7 +51,12 @@ export default function PCGrid({ tiers, selectedPCs, onTogglePC }) {
             </div>
 
             <div className="pc-grid">
-              {tierGroup.pcs.map((pc) => {
+              {[...tierGroup.pcs].sort((a, b) => {
+                const na = parseInt(a.label.replace(/[^0-9]/g, ''), 10) || a.label;
+                const nb = parseInt(b.label.replace(/[^0-9]/g, ''), 10) || b.label;
+                if (typeof na === 'number' && typeof nb === 'number') return na - nb;
+                return String(a.label).localeCompare(String(b.label));
+              }).map((pc) => {
                 const isSelected = selectedPCs.includes(pc.id);
                 const isAvailable = pc.is_available;
                 let className = 'pc-seat';

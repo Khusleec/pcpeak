@@ -17,7 +17,7 @@ function buildCallbackUrl(bookingId) {
   const base = (config.frontendUrl || '').replace(/\/$/, '');
   if (!base) return null;
   const sig = callbackSignature(bookingId);
-  return `${base}/api/payments/callback?booking_id=${encodeURIComponent(bookingId)}&sig=${encodeURIComponent(sig)}`;
+  return `${base}/api/payments/qpay/callback?booking_id=${encodeURIComponent(bookingId)}&sig=${encodeURIComponent(sig)}`;
 }
 
 async function issueDepositInvoice(bookingId, userId) {

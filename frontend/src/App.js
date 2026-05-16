@@ -11,7 +11,6 @@ const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
-const MapPage = lazy(() => import('./pages/MapPage'));
 const BookingWizard = lazy(() => import('./pages/BookingWizard'));
 const BookingsPage = lazy(() => import('./pages/BookingsPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
@@ -69,7 +68,6 @@ export default function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/map" element={<MapPage />} />
               <Route path="/cafe/:id/book" element={<BookingWizard />} />
               <Route path="/bookings" element={<BookingsPage />} />
               <Route path="/tournaments" element={<TournamentsPage />} />
