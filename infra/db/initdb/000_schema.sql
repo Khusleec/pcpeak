@@ -137,7 +137,7 @@ CREATE INDEX idx_booking_items_pc ON booking_items(pc_id);
 -- SEED: Default Roles
 -- ============================================================
 INSERT IGNORE INTO roles (id, name, description) VALUES
-    (1, 'admin', 'Full system access'),
+    (1, 'admin', 'Superuser — full access to all operations and data'),
     (2, 'moderator', 'Manage cafes and bookings'),
     (3, 'user', 'Book PCs and view cafes');
 

@@ -82,6 +82,7 @@ function skipGlobalRateLimit(req) {
   const url = req.originalUrl || '';
   // Agent chat polls GET /api/agent/tasks/:id — must not burn the global budget (429s often lack CORS → browser shows "CORS" errors).
   if (url.startsWith('/api/agent')) return true;
+  if (url.includes('/api/pcs/cafe/') && url.includes('/events')) return true;
   if (req.path === '/health' || url.endsWith('/health')) return true;
   if (url.includes('/payments/qpay/callback') || url.includes('/config/public')) return true;
   return false;

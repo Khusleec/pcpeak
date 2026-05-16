@@ -54,17 +54,17 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  border-radius: 0 !important;
+  border-radius: 4px;
 }
 
 html { background: var(--bg); }
 
 body {
   font-family: 'Inter', -apple-system, sans-serif;
-  font-size: var(--fs-body);
-  font-weight: 700;
-  line-height: 1.4;
-  letter-spacing: 0.18em;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   background: var(--bg);
   color: var(--text);
@@ -190,38 +190,39 @@ p, span, label, button, input, a, div {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 20px;
+  padding: 10px 20px;
   font-family: 'Inter', sans-serif;
-  font-size: var(--fs-body);
-  font-weight: 900;
-  letter-spacing: 0.25em;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   border: 1px solid var(--line-bright);
   background: var(--surface-1);
   color: var(--text);
   cursor: pointer;
-  transition: all 0.12s linear;
-  clip-path: var(--clip-btn);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 6px;
   position: relative;
+  overflow: hidden;
 }
 
 .btn:hover {
   background: var(--surface-2);
-  border-color: var(--red);
-  color: var(--red);
+  border-color: var(--red-dim);
+  transform: translateY(-1px);
 }
 
 .btn-primary {
   background: var(--red);
   border-color: var(--red);
   color: var(--bg);
-  box-shadow: 0 0 0 1px var(--red), 0 0 24px var(--red-glow);
+  box-shadow: 0 4px 12px var(--red-glow);
 }
 .btn-primary:hover {
-  background: #cc0000;
-  border-color: #cc0000;
+  background: #ff2222;
+  border-color: #ff2222;
   color: var(--bg);
-  box-shadow: 0 0 0 1px #cc0000, 0 0 32px var(--red-glow);
+  box-shadow: 0 6px 20px var(--red-glow);
 }
 .btn-primary:disabled {
   background: var(--surface-2);
@@ -229,6 +230,7 @@ p, span, label, button, input, a, div {
   color: var(--text-dim);
   box-shadow: none;
   cursor: not-allowed;
+  transform: none;
 }
 
 .btn-ghost {
@@ -236,7 +238,7 @@ p, span, label, button, input, a, div {
   border-color: var(--line-bright);
   color: var(--text-muted);
 }
-.btn-ghost:hover { color: var(--red); border-color: var(--red); background: transparent; }
+.btn-ghost:hover { color: var(--text); border-color: var(--line-bright); background: rgba(255, 255, 255, 0.05); }
 
 .btn-danger {
   background: transparent;
@@ -249,17 +251,20 @@ p, span, label, button, input, a, div {
 .panel {
   background: var(--surface-1);
   border: 1px solid var(--line-bright);
-  padding: 20px;
+  padding: 24px;
   position: relative;
   z-index: 2;
+  border-radius: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .panel-clipped {
-  clip-path: var(--clip-panel);
+  /* No clip-path for modern sleek */
 }
 
 .panel:hover {
   border-color: var(--red-dim);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .panel-glow {
@@ -333,11 +338,11 @@ p, span, label, button, input, a, div {
 
 /* ─── Navbar ────────────────────────────────────────────── */
 .navbar {
-  background: rgba(0, 0, 0, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--line-bright);
-  height: 56px;
+  height: 64px;
   display: flex;
   align-items: center;
   position: sticky;
@@ -355,9 +360,9 @@ p, span, label, button, input, a, div {
 .navbar-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   font-style: italic;
   letter-spacing: -0.03em;
@@ -365,45 +370,46 @@ p, span, label, button, input, a, div {
   color: var(--text);
 }
 .navbar-brand-mark {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background: var(--red);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 16px var(--red-glow);
+  box-shadow: 0 0 20px var(--red-glow);
   position: relative;
+  border-radius: 4px;
 }
 .navbar-brand-mark::after {
   content: '';
   position: absolute;
   inset: 4px;
   border: 1px solid var(--bg);
+  border-radius: 2px;
 }
 .navbar-brand-divider { color: var(--red); }
 
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 4px;
 }
 .navbar-links a {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 16px;
+  gap: 8px;
+  padding: 8px 16px;
   font-family: 'Inter', sans-serif;
-  font-size: var(--fs-body);
-  font-weight: 900;
-  letter-spacing: 0.25em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
-  border-left: 1px solid var(--line-bright);
-  transition: all 0.1s;
+  transition: all 0.2s;
+  border-radius: 6px;
 }
-.navbar-links a:last-child { border-right: 1px solid var(--line-bright); }
-.navbar-links a:hover { color: var(--red); background: var(--surface-1); }
-.navbar-links a.active { color: var(--red); background: var(--surface-1); }
+.navbar-links a:hover { color: var(--text); background: rgba(255, 255, 255, 0.05); }
+.navbar-links a.active { color: var(--red); background: rgba(255, 0, 0, 0.05); }
 
 .navbar-user {
   display: flex;
@@ -511,31 +517,54 @@ p, span, label, button, input, a, div {
   text-transform: uppercase;
   color: var(--text-muted);
 }
-
 /* ─── Map ───────────────────────────────────────────────── */
 .map-container {
   border: 1px solid var(--red);
   height: 520px;
   position: relative;
-  box-shadow:
-    0 0 20px rgba(255, 0, 0, 0.08),
-    inset 0 0 40px rgba(255, 255, 255, 0.65);
-  background: #f5f7fa;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.08);
+  background: #2a2d34;
   overflow: hidden;
+  border-radius: 12px;
 }
-.map-container--light-map .leaflet-container {
-  background: #eef1f5;
+
+.map-container--dark .leaflet-container {
+  background: #0a0a0a;
 }
-.map-container--light-map .leaflet-container .leaflet-tile-pane {
-  filter: saturate(1.08) brightness(1.04) contrast(1.03);
+.map-container--dark .leaflet-control-zoom a {
+  background: var(--surface-1) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line-bright) !important;
 }
-.map-container--light-map .leaflet-control-zoom a {
+.map-container--dark .leaflet-control-zoom a:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--red) !important;
+  color: var(--red) !important;
+}
+.map-container--dark .map-locate-control__btn {
+  background: var(--surface-1);
+  color: var(--red);
+  border: 1px solid var(--line-bright);
+}
+.map-container--dark .map-locate-control__btn:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: var(--red);
+}
+
+.map-container--voyager .leaflet-container {
+...
+  background: #cfd4dc;
+}
+.map-container--voyager .leaflet-container .leaflet-tile-pane {
+  filter: none;
+}
+.map-container--voyager .leaflet-control-zoom a {
   background: #ffffff !important;
   color: #0a0a0a !important;
   border: 1px solid rgba(0, 0, 0, 0.18) !important;
   font-weight: 700;
 }
-.map-container--light-map .leaflet-control-zoom a:hover {
+.map-container--voyager .leaflet-control-zoom a:hover {
   background: #f4f4f5 !important;
   border-color: var(--red) !important;
   color: var(--red) !important;
@@ -574,10 +603,10 @@ p, span, label, button, input, a, div {
   z-index: 1;
   height: 100%;
   width: 100%;
-  background: #eef1f5;
+  background: #cfd4dc;
 }
 .leaflet-container .leaflet-tile-pane {
-  filter: saturate(1.08) brightness(1.04) contrast(1.03);
+  filter: none;
 }
 .leaflet-container .leaflet-tile,
 .leaflet-container img.leaflet-tile {
@@ -1031,6 +1060,20 @@ p, span, label, button, input, a, div {
   background: rgba(255,0,0,0.06);
   border: 1px solid var(--red);
   color: var(--red);
+  font-size: var(--fs-body);
+  font-weight: 900;
+  letter-spacing: 0.2em;
+}
+
+.success-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid var(--emerald);
+  color: var(--emerald);
   font-size: var(--fs-body);
   font-weight: 900;
   letter-spacing: 0.2em;

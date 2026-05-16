@@ -11,4 +11,13 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Нууц үгээ оруулна уу'),
 });
 
-module.exports = { registerSchema, loginSchema };
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Имэйл хаяг буруу байна'),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Токен шаардлагатай'),
+  password: z.string().min(8, 'Нууц үг доод тал нь 8 тэмдэгт байх ёстой').max(128),
+});
+
+module.exports = { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema };

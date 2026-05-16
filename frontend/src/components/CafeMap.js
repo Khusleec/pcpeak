@@ -167,7 +167,7 @@ export default function CafeMap() {
   }
 
   return (
-    <div className="map-container map-container--has-overlay map-container--light-map">
+    <div className="map-container map-container--has-overlay map-container--dark">
       <MapContainer
         center={UB_CENTER}
         zoom={13}
@@ -177,11 +177,10 @@ export default function CafeMap() {
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
-          key="carto-light-all"
+          key="carto-dark"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png"
           subdomains="abcd"
-          detectRetina
         />
         <LocateMeControl onLocated={setUserGeo} />
         <MapInitialView boundsPoints={boundsPoints} userGeo={userGeo} />

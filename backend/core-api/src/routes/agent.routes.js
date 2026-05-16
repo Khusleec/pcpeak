@@ -18,7 +18,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const pool = require('../db/pool');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, userIsAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -110,12 +110,20 @@ router.post('/chat', authenticateToken, async (req, res) => {
 //     endpoint timed out (returned 202).
 router.get('/tasks/:id', authenticateToken, async (req, res) => {
   try {
-    const r = await pool.query(
-      `SELECT id, status, reply, error, created_at, finished_at
+    const admin = await userIsAdmin(req.user.id);
+    const r = admin
+      ? await pool.query(
+          `SELECT id, status, reply, error, created_at, finished_at
+         FROM agent_tasks
+        WHERE id = ?`,
+          [req.params.id]
+        )
+      : await pool.query(
+          `SELECT id, status, reply, error, created_at, finished_at
          FROM agent_tasks
         WHERE id = ? AND user_id = ?`,
-      [req.params.id, req.user.id]
-    );
+          [req.params.id, req.user.id]
+        );
     const row = r.rows[0];
     if (!row) return res.status(404).json({ error: 'Task not found' });
     return res.json(row);

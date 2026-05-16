@@ -121,6 +121,20 @@ CREATE TABLE IF NOT EXISTS oauth_exchange_codes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================================
+-- 9. PASSWORD RESET TOKENS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    token       VARCHAR(64) PRIMARY KEY,
+    user_id     CHAR(36) NOT NULL,
+    expires_at  DATETIME NOT NULL,
+    used        TINYINT(1) NOT NULL DEFAULT 0,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_reset_token_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_reset_token_expires (expires_at),
+    INDEX idx_reset_token_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
 -- INDEXES
 -- ============================================================
 CREATE INDEX idx_users_google_id ON users(google_id);
@@ -136,7 +150,7 @@ CREATE INDEX idx_booking_items_pc ON booking_items(pc_id);
 -- SEED: Default Roles
 -- ============================================================
 INSERT IGNORE INTO roles (id, name, description) VALUES
-    (1, 'admin', 'Full system access'),
+    (1, 'admin', 'Superuser — full access to all operations and data'),
     (2, 'moderator', 'Manage cafes and bookings'),
     (3, 'user', 'Book PCs and view cafes');
 

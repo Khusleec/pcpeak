@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function PCGrid({ tiers, selectedPCs, onTogglePC }) {
   if (!tiers || tiers.length === 0) {
@@ -12,15 +13,25 @@ export default function PCGrid({ tiers, selectedPCs, onTogglePC }) {
   }
 
   return (
-    <div>
-      {tiers.map((tierGroup) => {
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      {tiers.map((tierGroup, tierIdx) => {
         const tierName = tierGroup.tier.name;
         const tagClass = tierName === 'VIP' ? 'tag-vip' : 'tag-zaal';
         const available = tierGroup.pcs.filter((p) => p.is_available).length;
         const total = tierGroup.pcs.length;
 
         return (
-          <div key={tierName} className="tier-section">
+          <motion.div
+            key={tierName}
+            className="tier-section"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: tierIdx * 0.1 }}
+          >
             <div className="tier-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <span className={`tag ${tagClass}`}>// {tierName === 'Zaal' ? 'ЗААЛ' : tierName} АНГИ</span>
@@ -49,23 +60,26 @@ export default function PCGrid({ tiers, selectedPCs, onTogglePC }) {
                 else className += ' occupied';
 
                 return (
-                  <div
+                  <motion.div
                     key={pc.id}
                     className={className}
                     onClick={() => isAvailable && onTogglePC(pc.id)}
                     title={isAvailable ? `${pc.label} :: ${isSelected ? 'СОНГОЛТЫГ ЦУЦЛАХ' : 'СОНГОХ'}` : 'ЗАХИАЛГАТАЙ'}
+                    whileHover={isAvailable ? { scale: 1.02, translateY: -2 } : {}}
+                    whileTap={isAvailable ? { scale: 0.96 } : {}}
+                    animate={isSelected ? { borderColor: 'var(--red)', boxShadow: '0 0 15px var(--red-glow)' } : {}}
                   >
                     <span className="pc-seat-label">#{pc.label.replace(/[^0-9]/g, '') || pc.label}</span>
                     <span className="pc-seat-status">
                       {isSelected ? '◆ СОНГОСОН' : isAvailable ? 'СУЛ' : 'БАНД'}
                     </span>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }

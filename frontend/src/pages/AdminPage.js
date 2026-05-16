@@ -102,7 +102,7 @@ export default function AdminPage() {
 
         <div className="booking-card" style={{ marginBottom: 20, alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div className="mono" style={{ flex: 1, minWidth: 200, fontSize: 10, color: 'var(--text-muted)', textTransform: 'none', lineHeight: 1.6 }}>
-            Энэ хуудсанд бүх хэрэглэгчийн захиалгын суурь жагсаалт харагдана. Зөвхөн <strong style={{ color: 'var(--text)' }}>admin</strong> болон{' '}
+            Энэ хуудсанд бүх хэрэглэгчийн захиалгын суурь жагсаалт харагдана. Зөвхөн <strong style={{ color: 'var(--text)' }}>admin</strong> (бүтэн системийн эрх — бүх тэмцээн/захиалга/төлбөр) болон{' '}
             <strong style={{ color: 'var(--text)' }}>moderator</strong> эрхээр нэвтэрсэн үед ажиллана.
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

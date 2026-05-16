@@ -2,8 +2,9 @@ const crypto = require('crypto');
 const express = require('express');
 const config = require('../config');
 const pool = require('../db/pool');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, userIsAdmin } = require('../middleware/auth');
 const qpayBooking = require('../services/qpay.booking');
+const { notifyCafeInventoryChanged } = require('../services/cafeInventoryBus');
 
 function signaturesMatch(a, b) {
   const ba = Buffer.from(String(a), 'utf8');
@@ -49,6 +50,10 @@ async function handleQpayCallback(req, res) {
 
   try {
     const { paid } = await qpayBooking.markPaidIfCheckSucceeds(b.qpay_invoice_id);
+    if (paid) {
+      const c = await pool.query('SELECT cafe_id FROM bookings WHERE id = ?', [bookingId]);
+      if (c.rows[0]?.cafe_id != null) notifyCafeInventoryChanged(c.rows[0].cafe_id, 'payment_confirmed');
+    }
     if (req.method === 'GET') {
       return redirectFrontend(res, { payment: paid ? 'ok' : 'pending', booking_id: bookingId });
     }
@@ -75,7 +80,17 @@ router.post('/qpay/bookings/:bookingId/invoice', authenticateToken, async (req, 
     return res.status(503).json({ error: 'QPay тохируулаагүй байна' });
   }
   try {
-    const checkout = await qpayBooking.issueDepositInvoice(req.params.bookingId, req.user.id);
+    const bookingId = req.params.bookingId;
+    const rows = await pool.query(`SELECT user_id FROM bookings WHERE id = ?`, [bookingId]);
+    const ownerId = rows.rows[0]?.user_id;
+    if (!ownerId) {
+      return res.status(404).json({ error: 'Захиалга олдсонгүй' });
+    }
+    const admin = await userIsAdmin(req.user.id);
+    if (!admin && ownerId !== req.user.id) {
+      return res.status(404).json({ error: 'Захиалга олдсонгүй' });
+    }
+    const checkout = await qpayBooking.issueDepositInvoice(bookingId, ownerId);
     return res.json({ qpay: checkout });
   } catch (err) {
     if (err.code === 'BOOKING_NOT_FOUND') {
@@ -99,11 +114,12 @@ router.post('/simulate/bookings/:bookingId', authenticateToken, async (req, res)
   }
   const bookingId = req.params.bookingId;
   const rows = await pool.query(
-    `SELECT id, user_id, status, payment_status FROM bookings WHERE id = ?`,
+    `SELECT id, user_id, cafe_id, status, payment_status FROM bookings WHERE id = ?`,
     [bookingId]
   );
   const b = rows.rows[0];
-  if (!b || b.user_id !== req.user.id) {
+  const admin = await userIsAdmin(req.user.id);
+  if (!b || (!admin && b.user_id !== req.user.id)) {
     return res.status(404).json({ error: 'Захиалга олдсонгүй' });
   }
   if (b.status !== 'pending_payment' || b.payment_status !== 'unpaid') {
@@ -111,8 +127,9 @@ router.post('/simulate/bookings/:bookingId', authenticateToken, async (req, res)
   }
   await pool.query(
     `UPDATE bookings SET status = 'confirmed', payment_status = 'paid' WHERE id = ? AND user_id = ?`,
-    [bookingId, req.user.id]
+    [bookingId, b.user_id]
   );
+  if (b.cafe_id != null) notifyCafeInventoryChanged(b.cafe_id, 'payment_simulated');
   return res.json({ ok: true, simulated: true });
 });
 
@@ -121,10 +138,11 @@ router.post('/qpay/bookings/:bookingId/sync', authenticateToken, async (req, res
     return res.status(503).json({ error: 'QPay тохируулаагүй байна' });
   }
   const rows = await pool.query(
-    'SELECT id, user_id, qpay_invoice_id, payment_status, status FROM bookings WHERE id = ?',
+    'SELECT id, user_id, cafe_id, qpay_invoice_id, payment_status, status FROM bookings WHERE id = ?',
     [req.params.bookingId]
   );
-  if (rows.rows.length === 0 || rows.rows[0].user_id !== req.user.id) {
+  const admin = await userIsAdmin(req.user.id);
+  if (rows.rows.length === 0 || (!admin && rows.rows[0].user_id !== req.user.id)) {
     return res.status(404).json({ error: 'Захиалга олдсонгүй' });
   }
   const b = rows.rows[0];
@@ -133,6 +151,7 @@ router.post('/qpay/bookings/:bookingId/sync', authenticateToken, async (req, res
   }
   try {
     const { paid } = await qpayBooking.markPaidIfCheckSucceeds(b.qpay_invoice_id);
+    if (paid && b.cafe_id != null) notifyCafeInventoryChanged(b.cafe_id, 'payment_sync');
     const again = await pool.query('SELECT status, payment_status FROM bookings WHERE id = ?', [b.id]);
     const row = again.rows[0] || b;
     return res.json({ paid, status: row.status, payment_status: row.payment_status });

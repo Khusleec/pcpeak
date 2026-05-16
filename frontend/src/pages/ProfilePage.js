@@ -147,12 +147,17 @@ export default function ProfilePage() {
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
               <div>
                 <div className="section-eyebrow" style={{ marginBottom: 6 }}>
-                  {isAdminRole(user.role) ? '// АДМИН — ДАВУУ ТАЛ' : '// MODERATOR — ДАВУУ ТАЛ'}
+                  {isAdminRole(user.role) ? '// ROOT · GOD MODE — Бүтэн систем' : '// MODERATOR — ДАВУУ ТАЛ'}
                 </div>
                 <h3 className="section-title" style={{ fontSize: 20, marginBottom: 8 }}>
-                  {isAdminRole(user.role) ? 'БҮТЭН ЭРХИЙН БАГЦ' : 'ЗАХИАЛГЫН УДИРДЛАГА'}
+                  {isAdminRole(user.role) ? 'ТӨВИЙН СУПЕРЭРХ (БҮХ ЗҮЙЛ)' : 'ЗАХИАЛГЫН УДИРДЛАГА'}
                 </h3>
                 <ul className="admin-benefits-list">
+                  {isAdminRole(user.role) && (
+                    <li style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'none', marginBottom: 8 }}>
+                      Таны <strong style={{ color: 'var(--text)' }}>admin</strong> эрх сервер дээр <strong style={{ color: 'var(--red)' }}>бүх нөөц, тэмцээн, захиалга, төлбөр</strong>-т бүрэн хандаж, зохион байгуулагчийн хязгаарыг авах боломжтой.
+                    </li>
+                  )}
                   <li>
                     <LayoutDashboard size={14} aria-hidden />
                     <span>

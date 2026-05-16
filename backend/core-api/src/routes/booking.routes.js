@@ -2,10 +2,11 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const config = require('../config');
 const pool = require('../db/pool');
-const { authenticateToken, authorize } = require('../middleware/auth');
+const { authenticateToken, authorize, userIsAdmin } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const { createBookingSchema } = require('../validators/booking.validator');
 const { issueDepositInvoice } = require('../services/qpay.booking');
+const { notifyCafeInventoryChanged } = require('../services/cafeInventoryBus');
 
 const router = express.Router();
 const DEPOSIT_RATE = 0.3;
@@ -87,6 +88,7 @@ router.post('/', authenticateToken, validate(createBookingSchema), async (req, r
     }
 
     await client.query('COMMIT');
+    notifyCafeInventoryChanged(cafe_id, 'booking_created');
 
     // 6. Fetch the created booking
     const fetched = await pool.query('SELECT * FROM bookings WHERE id = ?', [bookingId]);
@@ -184,18 +186,30 @@ router.get('/my', authenticateToken, async (req, res) => {
 // ─── Cancel Booking ─────────────────────────────────────────
 router.patch('/:id/cancel', authenticateToken, async (req, res) => {
   try {
-    const update = await pool.query(
-      `UPDATE bookings SET status = 'cancelled'
+    const admin = await userIsAdmin(req.user.id);
+    let update;
+    if (admin) {
+      update = await pool.query(
+        `UPDATE bookings SET status = 'cancelled'
+       WHERE id = ? AND status IN ('confirmed', 'pending_payment')`,
+        [req.params.id]
+      );
+    } else {
+      update = await pool.query(
+        `UPDATE bookings SET status = 'cancelled'
        WHERE id = ? AND user_id = ? AND status IN ('confirmed', 'pending_payment')`,
-      [req.params.id, req.user.id]
-    );
+        [req.params.id, req.user.id]
+      );
+    }
 
     if (update.rowCount === 0) {
       return res.status(404).json({ error: 'Захиалга олдсонгүй эсвэл аль хэдийн цуцлагдсан' });
     }
 
     const fetched = await pool.query('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
-    res.json(fetched.rows[0]);
+    const row = fetched.rows[0];
+    if (row?.cafe_id != null) notifyCafeInventoryChanged(row.cafe_id, 'booking_cancelled');
+    res.json(row);
   } catch (err) {
     console.error('Cancel booking error:', err);
     res.status(500).json({ error: 'Захиалга цуцлаж чадсангүй' });

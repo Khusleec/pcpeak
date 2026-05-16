@@ -2,6 +2,29 @@ const jwt = require('jsonwebtoken');
 const config = require('../config');
 const pool = require('../db/pool');
 
+/** Canonical admin role name in `roles` — treated as full superuser (all permissions). */
+const ADMIN_ROLE_NAME = 'admin';
+
+function isAdminRoleName(roleName) {
+  return typeof roleName === 'string' && roleName.toLowerCase() === ADMIN_ROLE_NAME;
+}
+
+async function fetchUserRoleName(userId) {
+  const result = await pool.query(
+    `SELECT r.name AS role_name FROM users u
+     JOIN roles r ON u.role_id = r.id
+     WHERE u.id = ?`,
+    [userId]
+  );
+  return result.rows[0]?.role_name ?? null;
+}
+
+/** True if this user row is the global admin (god-mode for RBAC and resource checks). */
+async function userIsAdmin(userId) {
+  const roleName = await fetchUserRoleName(userId);
+  return isAdminRoleName(roleName);
+}
+
 // Verify JWT token
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -50,7 +73,8 @@ function authorize(...allowedRoles) {
       }
 
       const userRole = result.rows[0].role_name;
-      if (!allowedRoles.includes(userRole)) {
+      // Admin bypasses explicit role lists — full project superuser.
+      if (!isAdminRoleName(userRole) && !allowedRoles.includes(userRole)) {
         return res.status(403).json({ error: 'Эрх хүрэлцэхгүй байна' });
       }
 
@@ -72,4 +96,13 @@ function generateToken(user) {
   );
 }
 
-module.exports = { authenticateToken, optionalAuthenticateToken, authorize, generateToken };
+module.exports = {
+  authenticateToken,
+  optionalAuthenticateToken,
+  authorize,
+  generateToken,
+  ADMIN_ROLE_NAME,
+  isAdminRoleName,
+  userIsAdmin,
+  fetchUserRoleName,
+};

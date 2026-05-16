@@ -1,7 +1,54 @@
 const express = require('express');
 const pool = require('../db/pool');
+const { subscribeCafeInventory } = require('../services/cafeInventoryBus');
 
 const router = express.Router();
+
+// ─── SSE: cafe PC inventory changed (bookings, payments, etc.) ──
+// Must be registered before GET /cafe/:cafeId so "events" is not parsed as cafeId.
+router.get('/cafe/:cafeId/events', (req, res) => {
+  const cafeId = parseInt(req.params.cafeId, 10);
+  if (!Number.isFinite(cafeId) || cafeId < 1) {
+    return res.status(400).json({ error: 'Салбарын ID буруу байна' });
+  }
+
+  res.status(200);
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+
+  if (typeof res.flushHeaders === 'function') res.flushHeaders();
+
+  try {
+    res.write(`data: ${JSON.stringify({ type: 'hello', cafeId, ts: Date.now() })}\n\n`);
+  } catch {
+    return;
+  }
+
+  const onNotify = (payload) => {
+    try {
+      res.write(`data: ${JSON.stringify({ type: 'inventory', cafeId, ...payload })}\n\n`);
+    } catch {
+      /* connection closed */
+    }
+  };
+
+  const unsubscribe = subscribeCafeInventory(cafeId, onNotify);
+
+  const ping = setInterval(() => {
+    try {
+      res.write(': ping\n\n');
+    } catch {
+      clearInterval(ping);
+    }
+  }, 25000);
+
+  req.on('close', () => {
+    clearInterval(ping);
+    unsubscribe();
+  });
+});
 
 // ─── Get All Tiers (must be before /:id-style routes) ───────
 router.get('/tiers', async (req, res) => {

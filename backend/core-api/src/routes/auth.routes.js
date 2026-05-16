@@ -7,7 +7,13 @@ const pool = require('../db/pool');
 const config = require('../config');
 const { generateToken, authenticateToken } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
-const { registerSchema, loginSchema } = require('../validators/auth.validator');
+const {
+  registerSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} = require('../validators/auth.validator');
+const { sendPasswordResetEmail } = require('../utils/email');
 
 const router = express.Router();
 const client = new OAuth2Client(config.google.clientId, config.google.clientSecret, config.google.redirectUri);
@@ -239,6 +245,73 @@ router.get('/me', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Get me error:', err);
     res.status(500).json({ error: 'Хэрэглэгчийн мэдээлэл татаж чадсангүй' });
+  }
+});
+
+// ─── Forgot Password ────────────────────────────────────────
+router.post('/forgot-password', validate(forgotPasswordSchema), async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Check if user exists
+    const userResult = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+    if (userResult.rows.length === 0) {
+      // For security, don't reveal if user exists. Just say "If email exists, we sent a link"
+      return res.json({ message: 'Хэрэв таны имэйл бүртгэлтэй бол нууц үг сэргээх линк илгээгдлээ.' });
+    }
+
+    const userId = userResult.rows[0].id;
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // Invalidate old tokens
+    await pool.query('UPDATE password_reset_tokens SET used = 1 WHERE user_id = ?', [userId]);
+
+    // Save new token
+    await pool.query(
+      'INSERT INTO password_reset_tokens (token, user_id, expires_at) VALUES (?, ?, ?)',
+      [token, userId, expiresAt]
+    );
+
+    // Send email
+    await sendPasswordResetEmail(email, token);
+
+    res.json({ message: 'Нууц үг сэргээх линк таны имэйл рүү илгээгдлээ.' });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ error: 'Нууц үг сэргээх хүсэлт амжилтгүй боллоо' });
+  }
+});
+
+// ─── Reset Password ─────────────────────────────────────────
+router.post('/reset-password', validate(resetPasswordSchema), async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    // Validate token
+    const result = await pool.query(
+      `SELECT user_id FROM password_reset_tokens 
+       WHERE token = ? AND used = 0 AND expires_at > NOW()`,
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Хүчингүй эсвэл хугацаа нь дууссан токен байна' });
+    }
+
+    const userId = result.rows[0].user_id;
+    const password_hash = await bcrypt.hash(password, 12);
+
+    // Update password
+    await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [password_hash, userId]);
+
+    // Mark token as used
+    await pool.query('UPDATE password_reset_tokens SET used = 1 WHERE token = ?', [token]);
+
+    res.json({ message: 'Нууц үг амжилттай шинэчлэгдлээ' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ error: 'Нууц үг шинэчлэхэд алдаа гарлаа' });
   }
 });
 

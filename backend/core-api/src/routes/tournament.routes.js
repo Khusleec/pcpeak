@@ -1,6 +1,6 @@
 const express = require('express');
 const pool = require('../db/pool');
-const { authenticateToken, optionalAuthenticateToken } = require('../middleware/auth');
+const { authenticateToken, optionalAuthenticateToken, userIsAdmin } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const {
   registerSchema,
@@ -22,6 +22,7 @@ function toSqlDateTime(iso) {
 async function canViewPrivateTournament(row, userId) {
   if (row.visibility !== 'private') return true;
   if (!userId) return false;
+  if (await userIsAdmin(userId)) return true;
   if (row.created_by && row.created_by === userId) return true;
   const r = await pool.query(
     'SELECT 1 AS ok FROM tournament_registrations WHERE tournament_id = ? AND user_id = ? LIMIT 1',
@@ -42,12 +43,15 @@ router.get('/', optionalAuthenticateToken, async (req, res) => {
        WHERE t.status != 'cancelled'`;
     const params = [];
     if (uid) {
-      sql += ` AND (
+      const admin = await userIsAdmin(uid);
+      if (!admin) {
+        sql += ` AND (
         t.visibility = 'public'
         OR t.created_by = ?
         OR EXISTS (SELECT 1 FROM tournament_registrations tr2 WHERE tr2.tournament_id = t.id AND tr2.user_id = ?)
       )`;
-      params.push(uid, uid);
+        params.push(uid, uid);
+      }
     } else {
       sql += ` AND t.visibility = 'public'`;
     }
@@ -172,7 +176,7 @@ router.patch('/:id', authenticateToken, validate(updateTournamentSchema), async 
     return res.status(404).json({ error: 'Тэмцээн олдсонгүй' });
   }
   const t = existing.rows[0];
-  if (t.created_by !== req.user.id) {
+  if (t.created_by !== req.user.id && !(await userIsAdmin(req.user.id))) {
     return res.status(403).json({ error: 'Зөвхөн зохион байгуулагч шинэчилнэ' });
   }
   const patch = req.body;
@@ -400,7 +404,10 @@ router.post('/:id/matches', authenticateToken, validate(createMatchesSchema), as
   const id = parseInt(req.params.id, 10);
   const tRows = await pool.query('SELECT created_by FROM tournaments WHERE id = ?', [id]);
   if (tRows.rows.length === 0) return res.status(404).json({ error: 'Тэмцээн олдсонгүй' });
-  if (tRows.rows[0].created_by !== req.user.id) return res.status(403).json({ error: 'Зөвхөн зохион байгуулагч' });
+  const createdBy = tRows.rows[0].created_by;
+  if (createdBy !== req.user.id && !(await userIsAdmin(req.user.id))) {
+    return res.status(403).json({ error: 'Зөвхөн зохион байгуулагч' });
+  }
 
   const client = await pool.connect();
   try {
@@ -428,7 +435,10 @@ router.patch('/:id/matches/:matchId', authenticateToken, validate(matchUpdateSch
   const { id, matchId } = req.params;
   const tRows = await pool.query('SELECT created_by FROM tournaments WHERE id = ?', [id]);
   if (tRows.rows.length === 0) return res.status(404).json({ error: 'Тэмцээн олдсонгүй' });
-  if (tRows.rows[0].created_by !== req.user.id) return res.status(403).json({ error: 'Зөвхөн зохион байгуулагч' });
+  const createdBy = tRows.rows[0].created_by;
+  if (createdBy !== req.user.id && !(await userIsAdmin(req.user.id))) {
+    return res.status(403).json({ error: 'Зөвхөн зохион байгуулагч' });
+  }
 
   const patch = req.body;
   const cols = [];

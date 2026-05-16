@@ -1,12 +1,15 @@
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from './components/Navbar';
 import ChatWidget from './components/ChatWidget';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 const MapPage = lazy(() => import('./pages/MapPage'));
 const CafeDetailPage = lazy(() => import('./pages/CafeDetailPage'));
@@ -33,6 +36,8 @@ function LoadingFallback() {
 }
 
 export default function App() {
+  const location = useLocation();
+
   return (
     <>
       <Toaster
@@ -42,26 +47,40 @@ export default function App() {
             background: 'var(--bg-card)',
             color: 'var(--text-primary)',
             border: '1px solid var(--border)',
+            borderRadius: '8px',
           },
         }}
       />
       <Navbar />
       <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/map" element={<MapPage />} />
-          <Route path="/cafe/:id" element={<CafeDetailPage />} />
-          <Route path="/bookings" element={<BookingsPage />} />
-          <Route path="/tournaments" element={<TournamentsPage />} />
-          <Route path="/tournaments/new" element={<CreateTournamentPage />} />
-          <Route path="/tournaments/:id" element={<TournamentDetailPage />} />
-          <Route path="/tournaments/:id/edit" element={<EditTournamentPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/admin" element={<AdminPage />} />
-        </Routes>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="route-main"
+          >
+            <Routes location={location}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/map" element={<MapPage />} />
+              <Route path="/cafe/:id" element={<CafeDetailPage />} />
+              <Route path="/bookings" element={<BookingsPage />} />
+              <Route path="/tournaments" element={<TournamentsPage />} />
+              <Route path="/tournaments/new" element={<CreateTournamentPage />} />
+              <Route path="/tournaments/:id" element={<TournamentDetailPage />} />
+              <Route path="/tournaments/:id/edit" element={<EditTournamentPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/admin" element={<AdminPage />} />
+            </Routes>
+          </motion.div>
+        </AnimatePresence>
       </Suspense>
       <ChatWidget />
     </>

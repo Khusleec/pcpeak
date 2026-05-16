@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import { getApiBaseUrl } from '../api/apiBase';
 import { pickQpayLink } from '../utils/qpay';
 import { useAuth } from '../context/AuthContext';
 import PCGrid from '../components/PCGrid';
@@ -41,15 +42,49 @@ export default function CafeDetailPage() {
 
   const fetchPCs = useCallback(() => {
     if (!startsAt || !endsAt) return;
-    api.get(`/pcs/cafe/${id}`, {
-      params: {
-        starts_at: new Date(startsAt).toISOString(),
-        ends_at: new Date(endsAt).toISOString(),
-      }
-    })
-      .then(({ data }) => setTiers(data))
+    api
+      .get(`/pcs/cafe/${id}`, {
+        params: {
+          starts_at: new Date(startsAt).toISOString(),
+          ends_at: new Date(endsAt).toISOString(),
+        },
+      })
+      .then(({ data }) => {
+        setTiers((prev) => {
+          const next = data;
+          if (JSON.stringify(prev) === JSON.stringify(next)) return prev;
+          return next;
+        });
+      })
       .catch(console.error);
   }, [id, startsAt, endsAt]);
+
+  const fetchPCsRef = useRef(fetchPCs);
+  fetchPCsRef.current = fetchPCs;
+
+  useEffect(() => {
+    if (!id) return;
+    const base = getApiBaseUrl().replace(/\/+$/, '');
+    const url = `${base}/pcs/cafe/${id}/events`;
+    let es;
+    try {
+      es = new EventSource(url);
+    } catch (e) {
+      console.warn('EventSource unavailable', e);
+      return undefined;
+    }
+    es.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'inventory') fetchPCsRef.current();
+      } catch {
+        /* hello / malformed */
+      }
+    };
+    return () => {
+      es.close();
+    };
+  }, [id]);
 
   useEffect(() => {
     api.get(`/cafes/${id}`)

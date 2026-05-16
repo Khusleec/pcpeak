@@ -1,5 +1,6 @@
 import React from 'react';
 import { Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function BookingSummary({ selectedPCs, tiers, startsAt, endsAt, onBook, loading, paymentsMode = 'local' }) {
   if (!selectedPCs.length) return null;
@@ -22,7 +23,13 @@ export default function BookingSummary({ selectedPCs, tiers, startsAt, endsAt, o
   const deposit = total * 0.3;
 
   return (
-    <div className="booking-summary">
+    <motion.div
+      className="booking-summary"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, paddingBottom: 12, borderBottom: '1px solid var(--red)' }}>
         <span className="label label-red">// ЗАХИАЛГЫН ХУРААНГУЙ</span>
         <span className="dot alert" />
@@ -30,17 +37,25 @@ export default function BookingSummary({ selectedPCs, tiers, startsAt, endsAt, o
 
       <div style={{ marginBottom: 14 }}>
         <div className="label" style={{ marginBottom: 8 }}>СОНГОСОН — {pcDetails.length} КОМПЬЮТЕР</div>
-        {pcDetails.map((pc) => (
-          <div key={pc.id} className="summary-row">
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span className={`tag ${pc.tier.name === 'VIP' ? 'tag-vip' : 'tag-zaal'}`} style={{ padding: '2px 6px' }}>{pc.tier.name === 'Zaal' ? 'ЗААЛ' : pc.tier.name}</span>
-              <span style={{ color: 'var(--text)' }}>№ {pc.label}</span>
-            </span>
-            <span className="mono" style={{ color: 'var(--text)', textTransform: 'none', fontSize: 10 }}>
-              ₮{Math.round(parseFloat(pc.tier.price_per_hour) * hours).toLocaleString()}
-            </span>
-          </div>
-        ))}
+        <AnimatePresence>
+          {pcDetails.map((pc) => (
+            <motion.div
+              key={pc.id}
+              className="summary-row"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span className={`tag ${pc.tier.name === 'VIP' ? 'tag-vip' : 'tag-zaal'}`} style={{ padding: '2px 6px' }}>{pc.tier.name === 'Zaal' ? 'ЗААЛ' : pc.tier.name}</span>
+                <span style={{ color: 'var(--text)' }}>№ {pc.label}</span>
+              </span>
+              <span className="mono" style={{ color: 'var(--text)', textTransform: 'none', fontSize: 10 }}>
+                ₮{Math.round(parseFloat(pc.tier.price_per_hour) * hours).toLocaleString()}
+              </span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
       <div className="summary-row">
@@ -54,7 +69,14 @@ export default function BookingSummary({ selectedPCs, tiers, startsAt, endsAt, o
 
       <div className="summary-total">
         <span className="summary-total-label">// НИЙТ ҮНЭ</span>
-        <span className="summary-total-value">₮{Math.round(total).toLocaleString()}</span>
+        <motion.span
+          className="summary-total-value"
+          key={total}
+          initial={{ scale: 1.1, color: '#fff' }}
+          animate={{ scale: 1, color: 'var(--red)' }}
+        >
+          ₮{Math.round(total).toLocaleString()}
+        </motion.span>
       </div>
       <div className="summary-row" style={{ marginBottom: 12 }}>
         <span>30% БАРЬЦАА</span>
@@ -63,15 +85,17 @@ export default function BookingSummary({ selectedPCs, tiers, startsAt, endsAt, o
         </span>
       </div>
 
-      <button
+      <motion.button
         className="btn btn-primary"
         style={{ width: '100%' }}
         onClick={onBook}
         disabled={loading || !startsAt || !endsAt}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
       >
         <Zap size={11} />{' '}
         {loading ? 'ИЛГЭЭЖ БАЙНА...' : depositFlow ? (paymentsMode === 'demo' ? '30% БАРЬЦААГААР ЗАХИАЛАХ (ЖИШЭЭ)' : '30% БАРЬЦААГААР ЗАХИАЛАХ (QPay)') : 'ЗАХИАЛАХ'}
-      </button>
+      </motion.button>
 
       {!depositFlow && (
         <p className="label" style={{ textAlign: 'center', marginTop: 10, color: 'var(--text-muted)', lineHeight: 1.5 }}>
@@ -96,6 +120,6 @@ export default function BookingSummary({ selectedPCs, tiers, startsAt, endsAt, o
           АЮУЛГҮЙ ХОЛБОЛТ // АВТОМАТ БАТАЛГААЖУУЛАЛТ
         </span>
       </div>
-    </div>
+    </motion.div>
   );
 }
