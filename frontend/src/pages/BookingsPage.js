@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useReducer } from 'react';
 import api from '../api/axios';
 import { pickQpayLink } from '../utils/qpay';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   XCircle,
   Database,
@@ -355,6 +356,14 @@ export default function BookingsPage() {
 }
 
 function BookingCard({ b, payCfg, payDeposit, simulateDeposit, cancelBooking }) {
+  let qrText = '';
+  try {
+    if (b.qpay_checkout_json) {
+      const parsed = typeof b.qpay_checkout_json === 'string' ? JSON.parse(b.qpay_checkout_json) : b.qpay_checkout_json;
+      qrText = parsed?.qr_text || '';
+    }
+  } catch(e) {}
+
   return (
     <div className="booking-card">
       <div>
@@ -409,10 +418,18 @@ function BookingCard({ b, payCfg, payDeposit, simulateDeposit, cancelBooking }) 
         <div className="mono" style={{ color: 'var(--amber)', fontSize: 12, marginBottom: 14, textTransform: 'none' }}>
           ₮{parseFloat(b.deposit_amount || 0).toLocaleString()}
         </div>
+
+        {qrText && b.status === 'pending_payment' && b.payment_status === 'unpaid' && (
+          <div style={{ background: '#fff', padding: '16px 12px 12px', borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 16, border: '1px solid var(--border)' }}>
+             <QRCodeSVG value={qrText} size={140} level="M" includeMargin={false} />
+             <p style={{ color: '#000', fontSize: 10, marginTop: 12, fontWeight: 900, letterSpacing: '0.05em' }}>QPAY АППААР УНШУУЛНА УУ</p>
+          </div>
+        )}
+
         <div className="booking-card-actions">
           {b.status === 'pending_payment' && b.payment_status === 'unpaid' && (
             <>
-              {(payCfg.paymentsMode === 'qpay' || payCfg.paymentsMode === 'demo') && (
+              {(payCfg.paymentsMode === 'qpay' || payCfg.paymentsMode === 'demo') && !qrText && (
                 <button type="button" className="btn btn-primary btn-block" onClick={() => payDeposit(b.id)}>
                   {payCfg.paymentsMode === 'demo' ? 'Төлбөр төлөх (жишээ)' : 'Төлбөр төлөх (QPay)'}
                 </button>
