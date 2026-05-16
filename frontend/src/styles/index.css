@@ -857,17 +857,10 @@ p, span, label, button, input, a, div {
   justify-content: center;
   box-shadow: 0 4px 20px rgba(255, 0, 0, 0.4);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 50%;
+  border-radius: 12px; /* Sleek rounded square instead of circle */
   margin-top: 16px;
 }
-.chat-toggle::after {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  pointer-events: none;
-}
+
 .chat-toggle:hover {
   background: #ff2222;
   box-shadow: 0 8px 30px rgba(255, 0, 0, 0.6);

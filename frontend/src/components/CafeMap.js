@@ -101,7 +101,7 @@ function LocateMeControl({ onLocated }) {
   );
 }
 
-export default function CafeMap() {
+export default function CafeMap({ fullscreen = false }) {
   const navigate = useNavigate();
   const [cafes, setCafes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -163,11 +163,13 @@ export default function CafeMap() {
   const boundsPoints = useMemo(() => cafesWithCoords.map((c) => c._pos), [cafesWithCoords]);
 
   if (loading) {
-    return <div className="skeleton" style={{ height: 520 }} />;
+    return <div className="skeleton" style={{ height: fullscreen ? '100vh' : 520 }} />;
   }
 
+  const containerClass = `map-container map-container--has-overlay map-container--dark ${fullscreen ? 'map-container--fullscreen' : ''}`;
+
   return (
-    <div className="map-container map-container--has-overlay map-container--dark">
+    <div className={containerClass}>
       <MapContainer
         center={UB_CENTER}
         zoom={13}
@@ -239,23 +241,11 @@ export default function CafeMap() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => navigate(`/cafe/${cafe.id}`)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    background: '#ff0000',
-                    color: '#000',
-                    border: '1px solid #ff0000',
-                    cursor: 'pointer',
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 10,
-                    fontWeight: 900,
-                    letterSpacing: '0.25em',
-                    textTransform: 'uppercase',
-                    boxShadow: '0 0 16px rgba(255,0,0,0.4)',
-                  }}
+                  onClick={() => navigate(`/cafe/${cafe.id}/book`)}
+                  className="btn btn-primary"
+                  style={{ width: '100%', marginTop: 12, padding: '12px', fontSize: '11px', letterSpacing: '0.15em' }}
                 >
-                  ◢ ЗАХИАЛАХ
+                  ЗАХИАЛАХ
                 </button>
               </div>
             </Popup>

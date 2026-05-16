@@ -21,51 +21,52 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="navbar">
-      <div className="container">
-        <Link to="/" className="navbar-brand">
-          <span className="navbar-brand-mark" />
-          PC<span className="navbar-brand-divider">//</span>PEAK
-          <span className="mono" style={{ marginLeft: 10, color: 'var(--text-dim)', fontSize: 10, letterSpacing: '0.06em' }}>v1.0.0</span>
-        </Link>
+    <div className="navbar-wrapper">
+      <nav className="navbar">
+        <div className="container">
+          <Link to="/" className="navbar-brand">
+            <span className="navbar-brand-mark" />
+            PC<span className="navbar-brand-divider">//</span>PEAK
+          </Link>
 
-        <div className="navbar-links">
-          <Link to="/map" className={isActive('/map')}><Map size={11} /> САЛБАРУУД</Link>
-          <Link to="/tournaments" className={isActive('/tournaments')}><Trophy size={11} /> ТЭМЦЭЭН</Link>
-          {user && <Link to="/bookings" className={isActive('/bookings')}><Database size={11} /> ЗАХИАЛГА</Link>}
-          {user && isStaffRole(user.role) && (
-            <Link to="/admin" className={isActive('/admin')}><Shield size={11} /> АДМИН</Link>
-          )}
-        </div>
+          <div className="navbar-links">
+            <Link to="/map" className={isActive('/map')}><Map size={14} /> САЛБАРУУД</Link>
+            <Link to="/tournaments" className={isActive('/tournaments')}><Trophy size={14} /> ТЭМЦЭЭН</Link>
+            {user && <Link to="/bookings" className={isActive('/bookings')}><Database size={14} /> ЗАХИАЛГА</Link>}
+            {user && isStaffRole(user.role) && (
+              <Link to="/admin" className={isActive('/admin')}><Shield size={14} /> АДМИН</Link>
+            )}
+          </div>
 
-        <div className="navbar-user">
-          {user ? (
-            <>
-              <Link
-                to="/profile"
-                className={`navbar-user-link ${isActive('/profile')}`}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}
-                title="Профайл харах"
-              >
-                <span className="dot live" />
-                <span className="mono" style={{ color: 'var(--text-muted)', fontSize: 10, letterSpacing: '0.04em', textTransform: 'none' }}>
-                  {user.display_name?.toUpperCase() || 'ХЭРЭГЛЭГЧ'}
-                </span>
-                {user.avatar_url && (
-                  <img src={user.avatar_url} alt="" className="navbar-avatar" />
-                )}
+          <div className="navbar-user">
+            {user ? (
+              <>
+                <Link
+                  to="/profile"
+                  className={`navbar-user-link ${isActive('/profile')}`}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', borderRadius: '16px' }}
+                  title="Профайл харах"
+                >
+                  <span className="dot live" />
+                  <span className="mono" style={{ color: 'var(--text-muted)', fontSize: 10, letterSpacing: '0.04em', textTransform: 'none' }}>
+                    {user.display_name?.toUpperCase() || 'ХЭРЭГЛЭГЧ'}
+                  </span>
+                  {user.avatar_url && (
+                    <img src={user.avatar_url} alt="" className="navbar-avatar" style={{ borderRadius: '50%' }} />
+                  )}
+                </Link>
+                <button className="btn btn-ghost" onClick={handleLogout} style={{ padding: '8px 12px', borderRadius: '20px' }}>
+                  <Power size={14} /> ГАРАХ
+                </button>
+              </>
+            ) : (
+              <Link to="/login" className="btn btn-primary" style={{ borderRadius: '20px' }}>
+                <Terminal size={14} /> НЭВТРЭХ
               </Link>
-              <button className="btn btn-ghost" onClick={handleLogout} style={{ padding: '8px 12px' }}>
-                <Power size={11} /> ГАРАХ
-              </button>
-            </>
-          ) : (
-            <Link to="/login" className="btn btn-primary">
-              <Terminal size={11} /> НЭВТРЭХ
-            </Link>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }
