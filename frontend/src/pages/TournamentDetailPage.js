@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Trophy, ArrowLeft, X, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useNavigate, Link, useParams } from 'react-router-dom';
 import { formatMnDateTime } from '../utils/formatMnDateTime';
 import { isAdminRole } from '../utils/roles';
 
