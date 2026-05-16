@@ -140,8 +140,11 @@ function normalizeCheckout(data) {
   const qr_text =
     data.qr_text ||
     data.qrText ||
-    (inv && (inv.qr_text || inv.qrText)) ||
+    data.qPay_QRcode ||
+    data.qpay_qrcode ||
+    (inv && (inv.qr_text || inv.qrText || inv.qPay_QRcode)) ||
     '';
+  const qr_image = data.qr_image || data.qPay_QRimage || (inv && (inv.qr_image || inv.qPay_QRimage)) || '';
   const urls = [];
   collectUrlsFromArray(urls, data.urls);
   if (inv) collectUrlsFromArray(urls, inv.urls);
