@@ -84,15 +84,17 @@ module.exports = {
     }
     return [...frontendOriginsList, ...corsExtraOriginsList].some(originHostnameEndsWithVercelApp);
   })(),
-  // Prefer AI_*; OPENAI_* / legacy names still work via fallbacks below.
+  // Prefer AI_*; GEMINI_* / OPENAI_* / legacy names still work via fallbacks below.
   ai: {
-    apiKey: process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '',
+    apiKey: process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '',
     baseUrl:
       process.env.AI_BASE_URL ||
+      process.env.GEMINI_BASE_URL ||
       process.env.OPENAI_BASE_URL ||
       'https://api.groq.com/openai/v1',
     model:
       process.env.AI_MODEL ||
+      process.env.GEMINI_MODEL ||
       process.env.OPENAI_MODEL ||
       'llama-3.3-70b-versatile',
   },
