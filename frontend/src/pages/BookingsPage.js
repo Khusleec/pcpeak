@@ -364,11 +364,6 @@ function BookingCard({ b, payCfg, payDeposit, simulateDeposit, cancelBooking }) 
     }
   } catch(e) {}
 
-  // DEMO MODE: Force a fake QR code to render so the UI can be tested
-  if (payCfg.paymentsMode === 'demo' && b.status === 'pending_payment' && b.payment_status === 'unpaid') {
-    qrText = `DEMO_QR_CODE_FOR_BOOKING_${b.id}`;
-  }
-
   return (
     <div className="booking-card">
       <div>

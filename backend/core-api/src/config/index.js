@@ -101,36 +101,9 @@ module.exports = {
     limit: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100,
     skipSuccessfulRequests: process.env.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS === 'true',
   },
-  qpay: (() => {
-    const clientId = (process.env.QPAY_CLIENT_ID || '').trim();
-    const clientSecret = (process.env.QPAY_CLIENT_SECRET || '').trim();
-    /** QPay portal often labels these “username / password” — same Basic auth as client id/secret. */
-    const username = (process.env.QPAY_USERNAME || '').trim();
-    const password = (process.env.QPAY_PASSWORD || '').trim();
-    const invoiceCode = (process.env.QPAY_INVOICE_CODE || '').trim();
-    const authUser = clientId || username;
-    const authSecret = clientSecret || password;
-    const enabled = Boolean(invoiceCode && authUser && authSecret);
-    return {
-      enabled,
-      baseUrl: (process.env.QPAY_BASE_URL || 'https://merchant.qpay.mn').trim(),
-      clientId,
-      clientSecret,
-      authUser,
-      authSecret,
-      invoiceCode,
-      branchCode: (process.env.QPAY_BRANCH_CODE || 'ONLINE').trim(),
-      receiverCode: (process.env.QPAY_RECEIVER_CODE || 'terminal').trim(),
-      /** Public HTTPS base of this API (no trailing slash). Used for QPay callback_url. */
-      publicBaseUrl: (process.env.QPAY_PUBLIC_BASE_URL || '').trim(),
-      /** Optional HMAC secret for callback ?sig= ; defaults to JWT_SECRET. */
-      callbackSecret: (process.env.QPAY_CALLBACK_SECRET || '').trim(),
-      /** After QPay marks invoice paid, call POST /v2/ebarimt/create (E-barimt 3.0). */
-      ebarimtEnabled: process.env.QPAY_EBARIMT_ENABLED === 'true' || process.env.QPAY_EBARIMT_ENABLED === '1',
-      /** QPay enum, e.g. CITIZEN | BUSINESS (see merchant docs / Postman). */
-      ebarimtReceiverType: (process.env.QPAY_EBARIMT_RECEIVER_TYPE || 'CITIZEN').trim(),
-    };
-  })(),
+  qpay: {
+    enabled: true,
+  },
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
