@@ -169,6 +169,29 @@ p, span, label, button, input, a, div {
 }
 
 /* ─── Layout ────────────────────────────────────────────── */
+.app-root {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+}
+
+.route-main {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: auto;
+}
+
+/* Specific overrides for map-home to hide scrollbar */
+.route-main.map-home-route {
+  overflow: hidden;
+}
+
 .container {
   max-width: 1280px;
   margin: 0 auto;
@@ -179,7 +202,7 @@ p, span, label, button, input, a, div {
 
 .page {
   padding: 32px 0 64px;
-  min-height: calc(100vh - 56px);
+  min-height: 100%;
   position: relative;
   z-index: 2;
 }
@@ -337,24 +360,39 @@ p, span, label, button, input, a, div {
 .tag-vip { color: var(--red); border-color: var(--red); background: rgba(255, 0, 0, 0.05); }
 
 /* ─── Navbar ────────────────────────────────────────────── */
+.navbar-wrapper {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 1000;
+  pointer-events: none; /* Let clicks pass through empty space */
+}
+
 .navbar {
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--line-bright);
-  height: 64px;
+  pointer-events: auto; /* Re-enable clicks on the actual navbar */
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--line-bright);
+  height: 56px;
   display: flex;
   align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  border-radius: 28px;
+  padding: 0 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
 }
 
 .navbar .container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
+  gap: 24px;
+  padding: 0; /* Remove container padding inside the pill */
+  width: auto;
 }
 
 .navbar-brand {
@@ -528,6 +566,14 @@ p, span, label, button, input, a, div {
   border-radius: 12px;
 }
 
+.map-container--fullscreen {
+  border: none;
+  height: 100vh;
+  height: 100dvh;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .map-container--dark .leaflet-container {
   background: #0a0a0a;
 }
@@ -552,7 +598,6 @@ p, span, label, button, input, a, div {
 }
 
 .map-container--voyager .leaflet-container {
-...
   background: #cfd4dc;
 }
 .map-container--voyager .leaflet-container .leaflet-tile-pane {
@@ -632,8 +677,9 @@ p, span, label, button, input, a, div {
 .leaflet-marker-icon.cafe-marker {
   z-index: 650 !important;
 }
-.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--bg) !important; color: var(--text) !important; border: 1px solid var(--red) !important; border-radius: 0 !important; }
-.leaflet-popup-content { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; }
+.leaflet-popup-content-wrapper { background: rgba(10, 10, 10, 0.95) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; color: var(--text) !important; border: 1px solid var(--line-bright) !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important; padding: 4px !important; }
+.leaflet-popup-tip { background: rgba(10, 10, 10, 0.95) !important; border-bottom: 1px solid var(--line-bright) !important; border-right: 1px solid var(--line-bright) !important; }
+.leaflet-popup-content { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; margin: 12px !important; }
 .leaflet-control-zoom a { background: var(--bg) !important; color: var(--red) !important; border: 1px solid var(--line-bright) !important; }
 .leaflet-control-zoom a:hover { background: var(--surface-1) !important; border-color: var(--red) !important; }
 
@@ -791,46 +837,57 @@ p, span, label, button, input, a, div {
 /* ─── Chat Widget ───────────────────────────────────────── */
 .chat-widget {
   position: fixed;
-  bottom: max(16px, env(safe-area-inset-bottom, 0px));
-  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  right: max(24px, env(safe-area-inset-right, 0px));
   z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .chat-toggle {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   background: var(--red);
   border: 1px solid var(--red);
-  color: var(--bg);
+  color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 24px var(--red-glow);
-  transition: all 0.12s;
-  position: relative;
+  box-shadow: 0 4px 20px rgba(255, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  margin-top: 16px;
 }
 .chat-toggle::after {
   content: '';
   position: absolute;
   inset: 4px;
-  border: 1px solid var(--bg);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
   pointer-events: none;
 }
-.chat-toggle:hover { background: #cc0000; box-shadow: 0 0 36px var(--red-glow); }
+.chat-toggle:hover {
+  background: #ff2222;
+  box-shadow: 0 8px 30px rgba(255, 0, 0, 0.6);
+  transform: scale(1.05) translateY(-2px);
+}
 
 .chat-panel {
-  position: absolute;
-  bottom: 60px;
-  right: 0;
-  width: 400px;
-  max-height: 540px;
-  background: var(--bg);
-  border: 1px solid var(--red);
-  box-shadow: 0 0 32px var(--red-glow);
+  width: 380px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 120px);
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--line-bright);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 540px;
 }
 
 .chat-header {
