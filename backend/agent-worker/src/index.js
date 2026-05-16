@@ -43,7 +43,7 @@ const MAX_TOOL_ROUNDS  = parseInt(process.env.AGENT_MAX_TOOL_ROUNDS, 10) || 8;
 // Primary source: GEMINI_ variables
 let AI_API_KEY  = process.env.GEMINI_API_KEY || process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '';
 let AI_BASE_URL = process.env.GEMINI_BASE_URL || process.env.AI_BASE_URL || process.env.OPENAI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/';
-let AI_MODEL    = process.env.GEMINI_MODEL || process.env.AI_MODEL || process.env.OPENAI_MODEL || 'gemini-1.5-flash';
+let AI_MODEL    = process.env.GEMINI_MODEL || process.env.AI_MODEL || process.env.OPENAI_MODEL || 'gemini-2.0-flash';
 
 // Strip /chat/completions suffix if user included it in env var (OpenAI SDK adds it)
 AI_BASE_URL = AI_BASE_URL.replace(/\/chat\/completions\/?$/, '');
