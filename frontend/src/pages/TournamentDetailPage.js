@@ -131,7 +131,8 @@ export default function TournamentDetailPage() {
       }
       
       await api.post(`/tournaments/${id}/matches`, payload);
-      toast.success('◆ ТОГЛОЛТУУД ҮҮСГЭГДЛЭЭ');
+      toast.success('◆ ТОГЛОЛТУУД ҮҮСГЭГЭДЛЭЭ БА БҮРТГЭЛ ХААГДЛАА');
+      load();
       loadMatches();
     } catch (err) {
       toast.error('⚠ ' + (err.response?.data?.error || 'АЛДАА').toUpperCase());

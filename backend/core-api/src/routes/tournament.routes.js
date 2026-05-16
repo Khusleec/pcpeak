@@ -419,6 +419,10 @@ router.post('/:id/matches', authenticateToken, validate(createMatchesSchema), as
         [id, m.player1_id, m.player2_id, m.round, m.match_order]
       );
     }
+    await client.query(
+      `UPDATE tournaments SET status = 'closed' WHERE id = ?`,
+      [id]
+    );
     await client.query('COMMIT');
     res.status(201).json({ ok: true });
   } catch (err) {
