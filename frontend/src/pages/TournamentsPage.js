@@ -12,6 +12,22 @@ const STATUS = {
   cancelled: 'ЦУЦЛАГДСАН',
 };
 
+const STATUS_CLASS = {
+  registration: 'pending_payment',
+  closed: 'cancelled',
+  live: 'confirmed',
+  finished: 'completed',
+  cancelled: 'cancelled',
+};
+
+const STATUS_DOT = {
+  registration: 'dot alert',
+  closed: 'dot dead',
+  live: 'dot warn',
+  finished: 'dot live',
+  cancelled: 'dot alert',
+};
+
 export default function TournamentsPage() {
   const { user } = useAuth();
   const [rows, setRows] = useState([]);
@@ -77,8 +93,8 @@ export default function TournamentsPage() {
                     <span className="display" style={{ fontSize: 18, color: 'var(--text)' }}>
                       {t.title?.toUpperCase()}
                     </span>
-                    <span className={`booking-status ${t.status === 'registration' ? 'pending_payment' : 'confirmed'}`}>
-                      <span className={t.status === 'registration' ? 'dot alert' : 'dot live'} />
+                    <span className={`booking-status ${STATUS_CLASS[t.status] || 'confirmed'}`}>
+                      <span className={STATUS_DOT[t.status] || 'dot live'} />
                       {STATUS[t.status] || t.status?.toUpperCase()}
                     </span>
                     {t.visibility === 'private' && (

@@ -2,8 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { Trophy, ArrowLeft, X } from 'lucide-react';
+import { Trophy, ArrowLeft, X, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import { formatMnDateTime } from '../utils/formatMnDateTime';
 import { isAdminRole } from '../utils/roles';
 
@@ -13,6 +14,22 @@ const STATUS = {
   live: 'ЯВЖ БАЙНА',
   finished: 'ДУУССАН',
   cancelled: 'ЦУЦЛАГДСАН',
+};
+
+const STATUS_CLASS = {
+  registration: 'pending_payment',
+  closed: 'cancelled',
+  live: 'confirmed',
+  finished: 'completed',
+  cancelled: 'cancelled',
+};
+
+const STATUS_DOT = {
+  registration: 'dot alert',
+  closed: 'dot dead',
+  live: 'dot warn',
+  finished: 'dot live',
+  cancelled: 'dot alert',
 };
 
 const VISIBILITY = {
@@ -33,6 +50,7 @@ const BRACKET_TYPE = {
 export default function TournamentDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [t, setT] = useState(null);
   const [loading, setLoading] = useState(true);
   const [ingame, setIngame] = useState('');
@@ -56,6 +74,20 @@ export default function TournamentDetailPage() {
       .catch(() => setT(null))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const deleteTournament = async () => {
+    if (!window.confirm('Энэ тэмцээнийг бүрмөсөн устгахдаа итгэлтэй байна уу?')) return;
+    setBusy(true);
+    try {
+      await api.delete(`/tournaments/${id}`);
+      toast.success('◆ ТЭМЦЭЭН УСТГАГДЛАА');
+      navigate('/tournaments');
+    } catch (err) {
+      toast.error('⚠ ' + (err.response?.data?.error || 'УСТГАЖ ЧАДСАНГҮЙ').toUpperCase());
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const loadParticipants = useCallback(() => {
     if (!id) return;
@@ -230,14 +262,19 @@ export default function TournamentDetailPage() {
             </h2>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <span className={`booking-status ${t.status === 'registration' ? 'pending_payment' : 'confirmed'}`}>
-              <span className={t.status === 'registration' ? 'dot alert' : 'dot live'} />
+            <span className={`booking-status ${STATUS_CLASS[t.status] || 'confirmed'}`}>
+              <span className={STATUS_DOT[t.status] || 'dot live'} />
               {STATUS[t.status] || t.status}
             </span>
-            {user && t.created_by === user.id && (
-              <Link to={`/tournaments/${t.id}/edit`} className="btn btn-primary" style={{ textDecoration: 'none' }}>
-                ЗАСВАРЛАХ
-              </Link>
+            {user && (t.created_by === user.id || isAdminRole(user.role)) && (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Link to={`/tournaments/${t.id}/edit`} className="btn btn-primary" style={{ textDecoration: 'none' }}>
+                  ЗАСВАРЛАХ
+                </Link>
+                <button className="btn btn-danger" onClick={deleteTournament} disabled={busy}>
+                  <Trash2 size={14} /> УСТГАХ
+                </button>
+              </div>
             )}
           </div>
         </div>

@@ -464,4 +464,43 @@ router.patch('/:id/matches/:matchId', authenticateToken, validate(matchUpdateSch
   }
 });
 
+// ─── Delete tournament (creator or admin) ──────────────────
+router.delete('/:id', authenticateToken, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id) || id < 1) {
+    return res.status(400).json({ error: 'Тэмцээний ID буруу байна' });
+  }
+
+  try {
+    const existing = await pool.query('SELECT created_by FROM tournaments WHERE id = ?', [id]);
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ error: 'Тэмцээн олдсонгүй' });
+    }
+
+    const t = existing.rows[0];
+    if (t.created_by !== req.user.id && !(await userIsAdmin(req.user.id))) {
+      return res.status(403).json({ error: 'Зөвхөн зохион байгуулагч эсвэл админ устгах эрхтэй' });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      // Delete matches and registrations first (foreign key constraints)
+      await client.query('DELETE FROM tournament_matches WHERE tournament_id = ?', [id]);
+      await client.query('DELETE FROM tournament_registrations WHERE tournament_id = ?', [id]);
+      await client.query('DELETE FROM tournaments WHERE id = ?', [id]);
+      await client.query('COMMIT');
+      res.json({ ok: true });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('Delete tournament:', err);
+    res.status(500).json({ error: 'Тэмцээн устгахад алдаа гарлаа' });
+  }
+});
+
 module.exports = router;
