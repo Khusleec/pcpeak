@@ -109,33 +109,6 @@ async function checkPayment(body) {
   return data;
 }
 
-async function createEbarimt(body) {
-  const token = await getAccessToken();
-  const { baseUrl } = getConfig();
-  const res = await fetch(`${baseUrl.replace(/\/$/, '')}/v2/ebarimt/create`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  const text = await res.text();
-  let data;
-  try {
-    data = text ? JSON.parse(text) : {};
-  } catch {
-    data = { raw: text };
-  }
-  if (!res.ok) {
-    const err = new Error(`QPay ebarimt/create failed: HTTP ${res.status}`);
-    err.status = res.status;
-    err.data = data;
-    throw err;
-  }
-  return data;
-}
-
 function invoiceIdFromCreateResponse(data) {
   const inv = data.invoice && typeof data.invoice === 'object' ? data.invoice : null;
   return (
@@ -202,7 +175,6 @@ module.exports = {
   getAccessToken,
   createInvoice,
   checkPayment,
-  createEbarimt,
   invoiceIdFromCreateResponse,
   normalizeCheckout,
 };

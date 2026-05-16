@@ -160,25 +160,6 @@ async function markPaidIfCheckSucceeds(invoiceId) {
     [paymentId, invoiceId]
   );
 
-  if (upd.rowCount > 0 && config.qpay.ebarimtEnabled && paymentId) {
-    try {
-      const eb = await qpayApi.createEbarimt({
-        payment_id: String(paymentId),
-        ebarimt_receiver_type: config.qpay.ebarimtReceiverType || 'CITIZEN',
-      });
-      const r = await pool.query(
-        `SELECT id FROM bookings WHERE qpay_invoice_id = ? AND payment_status = 'paid' LIMIT 1`,
-        [invoiceId]
-      );
-      const bid = r.rows[0]?.id;
-      if (bid) {
-        await pool.query('UPDATE bookings SET qpay_ebarimt_json = ? WHERE id = ?', [JSON.stringify(eb), bid]);
-      }
-    } catch (ebErr) {
-      console.error('QPay ebarimt/create:', ebErr.message, ebErr.data || '');
-    }
-  }
-
   return { paid: upd.rowCount > 0, check };
 }
 
