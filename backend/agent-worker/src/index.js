@@ -2,21 +2,20 @@ const http = require('node:http');
 require('dotenv').config();
 
 // ─── Config ─────────────────────────────────────────────────
-const AI_API_KEY  = process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '';
-const AI_BASE_URL = process.env.AI_BASE_URL || process.env.OPENAI_BASE_URL || 'https://api.groq.com/openai/v1';
-const AI_MODEL    = process.env.AI_MODEL || process.env.OPENAI_MODEL || 'llama3-70b-8192';
+const AI_API_KEY  = process.env.AI_API_KEY || process.env.GROQ_API_KEY || '';
+const AI_MODEL    = process.env.AI_MODEL || 'llama-3.1-8b-instant';
 
 // ─── Bulletproof Health Check ───────────────────────────────
 const HEALTH_PORT = process.env.PORT || 8080;
 const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ service: 'agent-worker', status: 'ok', adapter: 'openai-compatible', model: AI_MODEL }));
+  res.end(JSON.stringify({ service: 'agent-worker', status: 'ok', adapter: 'groq-sdk', model: AI_MODEL }));
 }).listen(HEALTH_PORT, '0.0.0.0', () => {
   console.log(`[agent-worker] Health server active on 0.0.0.0:${HEALTH_PORT}`);
 });
 
 // ─── App Logic ──────────────────────────────────────────────
-const OpenAI = require('openai');
+const Groq = require('groq-sdk');
 
 if (!process.env.DATABASE_URL) {
   console.error('CRITICAL: DATABASE_URL is not set in environment variables!');
@@ -29,17 +28,16 @@ const POLL_INTERVAL_MS = parseInt(process.env.AGENT_POLL_INTERVAL_MS, 10) || 100
 const MAX_TOOL_ROUNDS  = parseInt(process.env.AGENT_MAX_TOOL_ROUNDS, 10) || 8;
 
 if (!AI_API_KEY) {
-  console.warn('WARNING: AI_API_KEY is missing. AI will not be able to reply.');
+  console.warn('WARNING: AI_API_KEY (or GROQ_API_KEY) is missing. AI will not be able to reply.');
 }
 
-// Initialize OpenAI client (Groq-compatible)
-const openai = AI_API_KEY ? new OpenAI({
-  apiKey: AI_API_KEY,
-  baseURL: AI_BASE_URL
+// Initialize Groq client
+const groq = AI_API_KEY ? new Groq({
+  apiKey: AI_API_KEY
 }) : null;
 
-if (openai) {
-  console.log(`[agent-worker] adapter: openai-compatible (${AI_MODEL}) at ${AI_BASE_URL}`);
+if (groq) {
+  console.log(`[agent-worker] adapter: groq-sdk (${AI_MODEL})`);
 }
 
 // ─── System prompt ──────────────────────────────────────────
@@ -75,7 +73,7 @@ function unpackStored(raw) {
 }
 
 async function runAgentLoop(userId, rawMessage) {
-  if (!openai) throw new Error('AI API түлхүүр тохируулаагүй байна');
+  if (!groq) throw new Error('AI API түлхүүр тохируулаагүй байна');
   
   const { message, history } = unpackStored(rawMessage);
   const useTools = textLooksBookingRelated(message + (history.map(h => h.content).join(' ')));
@@ -89,7 +87,7 @@ async function runAgentLoop(userId, rawMessage) {
   let rounds = 0;
   while (rounds < MAX_TOOL_ROUNDS) {
     rounds++;
-    const response = await openai.chat.completions.create({
+    const response = await groq.chat.completions.create({
       model: AI_MODEL,
       messages,
       tools: useTools ? tools : undefined,
