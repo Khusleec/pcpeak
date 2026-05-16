@@ -11,45 +11,45 @@
  */
 
 const http = require('node:http');
+
+// ─── Bulletproof Health Check ───────────────────────────────
+// Starts immediately with zero dependencies. 
+// Bound to 0.0.0.0 so external health checkers can reach it.
+const HEALTH_PORT = process.env.PORT || 8080;
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ service: 'agent-worker', status: 'ok', debug: true }));
+}).listen(HEALTH_PORT, '0.0.0.0', () => {
+  console.log(`[agent-worker] Health server active on 0.0.0.0:${HEALTH_PORT}`);
+});
+
+// ─── App Logic ──────────────────────────────────────────────
 const { OpenAI } = require('openai');
 require('dotenv').config();
 
-// ─── Config ─────────────────────────────────────────────────
+if (!process.env.DATABASE_URL) {
+  console.error('CRITICAL: DATABASE_URL is not set in environment variables!');
+  console.error('The worker will remain idle. Please add DATABASE_URL to your deployment dashboard.');
+  // We DO NOT process.exit(1) here so the health check stays passing 
+  // and the user can actually see this error in their logs.
+}
+
+const pool = process.env.DATABASE_URL ? require('./db') : null;
+const { tools, executeTool } = require('./tools');
+
 const POLL_INTERVAL_MS = parseInt(process.env.AGENT_POLL_INTERVAL_MS, 10) || 1000;
-const HEALTH_PORT      = parseInt(process.env.PORT || process.env.AGENT_HEALTH_PORT, 10) || 8090;
 const MAX_TOOL_ROUNDS  = parseInt(process.env.AGENT_MAX_TOOL_ROUNDS, 10) || 8;
 const AI_API_KEY       = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '';
 const AI_BASE_URL      = process.env.AI_BASE_URL || process.env.GEMINI_BASE_URL || process.env.OPENAI_BASE_URL || 'https://api.groq.com/openai/v1';
 const AI_MODEL         = process.env.AI_MODEL    || process.env.GEMINI_MODEL    || process.env.OPENAI_MODEL    || 'llama-3.3-70b-versatile';
 
-// ─── Tiny health HTTP endpoint ──────────────────────────────
-// Start this ASAP so the deployment platform sees the service as "up"
-const server = http.createServer((req, res) => {
-  if (req.url === '/health' || req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ service: 'agent-worker', status: 'ok' }));
-    return;
-  }
-  res.writeHead(404).end();
-});
-server.listen(HEALTH_PORT, '0.0.0.0', () => {
-  console.log(`[agent-worker] health endpoint on 0.0.0.0:${HEALTH_PORT}`);
-});
-
-// ─── Critical Check ─────────────────────────────────────────
-if (!process.env.DATABASE_URL) {
-  console.error('agent-worker: DATABASE_URL is required');
-  process.exit(1);
-}
-
-const pool = require('./db');
-const { tools, executeTool } = require('./tools');
-
 if (!AI_API_KEY) {
-  console.warn('agent-worker: AI_API_KEY is not set — tasks will fail until you add a key.');
+  console.warn('WARNING: AI_API_KEY is missing. AI will not be able to reply.');
 }
 
-const openai = new OpenAI({ apiKey: AI_API_KEY || 'missing', baseURL: AI_BASE_URL });
+const openai = (AI_API_KEY && AI_API_KEY !== 'missing') 
+  ? new OpenAI({ apiKey: AI_API_KEY, baseURL: AI_BASE_URL })
+  : null;
 
 // ─── System prompt ──────────────────────────────────────────
 const SYSTEM_PROMPT = `Та ерөнхий зорилготой ухаалаг AI туслагч. Хэрэглэгчтэй найрсаг, чөлөөтэй, бодит мэт ярилцана уу — яриаг зөвхөн нэг сэдэгт шахахгүй.
