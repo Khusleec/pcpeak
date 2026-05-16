@@ -250,6 +250,17 @@ let running = true;
 
 async function tick() {
   while (running) {
+    if (!process.env.DATABASE_URL) {
+      console.warn('[agent-worker] IDLE: DATABASE_URL is missing. Please add it to your environment variables.');
+      await new Promise((r) => setTimeout(r, 10000)); // check again in 10s
+      continue;
+    }
+    if (!AI_API_KEY) {
+      console.warn('[agent-worker] IDLE: AI_API_KEY is missing. AI will not be able to respond.');
+      await new Promise((r) => setTimeout(r, 10000)); // check again in 10s
+      continue;
+    }
+
     try {
       const task = await claimNextTask();
       if (!task) {
@@ -266,8 +277,8 @@ async function tick() {
         await markFailed(task.id, err.message || 'agent failure');
       }
     } catch (loopErr) {
-      console.error('[agent-worker] loop error:', loopErr);
-      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+      console.error('[agent-worker] loop error:', loopErr.message);
+      await new Promise((r) => setTimeout(r, 5000));
     }
   }
 }
