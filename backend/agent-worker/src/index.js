@@ -12,22 +12,25 @@
 
 const http = require('node:http');
 const { OpenAI } = require('openai');
+require('dotenv').config();
+
+// ─── Critical Check ─────────────────────────────────────────
+if (!process.env.DATABASE_URL) {
+  console.error('agent-worker: DATABASE_URL is required');
+  process.exit(1);
+}
+
 const pool = require('./db');
 const { tools, executeTool } = require('./tools');
-require('dotenv').config();
 
 // ─── Config ─────────────────────────────────────────────────
 const POLL_INTERVAL_MS = parseInt(process.env.AGENT_POLL_INTERVAL_MS, 10) || 1000;
-const HEALTH_PORT      = parseInt(process.env.AGENT_HEALTH_PORT, 10) || 8090;
+const HEALTH_PORT      = parseInt(process.env.PORT || process.env.AGENT_HEALTH_PORT, 10) || 8090;
 const MAX_TOOL_ROUNDS  = parseInt(process.env.AGENT_MAX_TOOL_ROUNDS, 10) || 8;
 const AI_API_KEY       = process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '';
 const AI_BASE_URL      = process.env.AI_BASE_URL || process.env.OPENAI_BASE_URL || 'https://api.groq.com/openai/v1';
 const AI_MODEL         = process.env.AI_MODEL    || process.env.OPENAI_MODEL    || 'llama-3.3-70b-versatile';
 
-if (!process.env.DATABASE_URL) {
-  console.error('agent-worker: DATABASE_URL is required');
-  process.exit(1);
-}
 if (!AI_API_KEY) {
   console.warn('agent-worker: AI_API_KEY is not set — tasks will fail until you add a key.');
 }
