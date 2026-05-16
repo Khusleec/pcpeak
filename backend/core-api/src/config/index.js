@@ -84,20 +84,18 @@ module.exports = {
     }
     return [...frontendOriginsList, ...corsExtraOriginsList].some(originHostnameEndsWithVercelApp);
   })(),
-  // Prefer AI_*; GEMINI_* / OPENAI_* / legacy names still work via fallbacks below.
-  ai: {
-    apiKey: process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '',
-    baseUrl:
-      process.env.AI_BASE_URL ||
-      process.env.GEMINI_BASE_URL ||
-      process.env.OPENAI_BASE_URL ||
-      'https://api.groq.com/openai/v1',
-    model:
-      process.env.AI_MODEL ||
-      process.env.GEMINI_MODEL ||
-      process.env.OPENAI_MODEL ||
-      'llama-3.3-70b-versatile',
-  },
+  // Prefer GEMINI_*; AI_* / OPENAI_* still work as fallbacks.
+  ai: (() => {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '';
+    let baseUrl = process.env.GEMINI_BASE_URL || process.env.AI_BASE_URL || process.env.OPENAI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/';
+    const model = process.env.GEMINI_MODEL || process.env.AI_MODEL || process.env.OPENAI_MODEL || 'gemini-1.5-flash';
+
+    // Strip /chat/completions suffix if present (SDK adds it)
+    baseUrl = baseUrl.replace(/\/chat\/completions\/?$/, '');
+    if (!baseUrl.endsWith('/')) baseUrl += '/';
+
+    return { apiKey, baseUrl, model };
+  })(),
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
     limit: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100,
