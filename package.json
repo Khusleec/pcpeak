@@ -5,6 +5,7 @@
   "description": "Rigup — React-only frontend + SOA backend (core-api + agent-worker + MySQL). One-command launcher.",
   "scripts": {
     "start": "node infra/scripts/start.js",
+    "start:prod": "concurrently \"node backend/core-api/src/index.js\" \"node backend/agent-worker/src/index.js\"",
     "stop": "docker compose down",
     "restart": "docker compose down && node infra/scripts/start.js",
     "logs": "docker compose logs -f",
@@ -19,5 +20,21 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {}
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "google-auth-library": "^10.6.2",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
+    "mysql2": "^3.22.3",
+    "nodemailer": "^8.0.7",
+    "openai": "^6.38.0",
+    "uuid": "^14.0.0",
+    "zod": "^4.4.3"
+  }
 }
