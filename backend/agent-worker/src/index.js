@@ -1,18 +1,22 @@
 const http = require('node:http');
+require('dotenv').config();
+
+// ─── Config ─────────────────────────────────────────────────
+const AI_API_KEY  = process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '';
+const AI_BASE_URL = process.env.AI_BASE_URL || process.env.OPENAI_BASE_URL || 'https://api.groq.com/openai/v1';
+const AI_MODEL    = process.env.AI_MODEL || process.env.OPENAI_MODEL || 'llama3-70b-8192';
 
 // ─── Bulletproof Health Check ───────────────────────────────
-// Starts immediately with zero dependencies. 
 const HEALTH_PORT = process.env.PORT || 8080;
 const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ service: 'agent-worker', status: 'ok', adapter: 'gemini-native' }));
+  res.end(JSON.stringify({ service: 'agent-worker', status: 'ok', adapter: 'openai-compatible', model: AI_MODEL }));
 }).listen(HEALTH_PORT, '0.0.0.0', () => {
   console.log(`[agent-worker] Health server active on 0.0.0.0:${HEALTH_PORT}`);
 });
 
 // ─── App Logic ──────────────────────────────────────────────
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-require('dotenv').config();
+const OpenAI = require('openai');
 
 if (!process.env.DATABASE_URL) {
   console.error('CRITICAL: DATABASE_URL is not set in environment variables!');
@@ -24,24 +28,19 @@ const { tools, executeTool } = require('./tools');
 const POLL_INTERVAL_MS = parseInt(process.env.AGENT_POLL_INTERVAL_MS, 10) || 1000;
 const MAX_TOOL_ROUNDS  = parseInt(process.env.AGENT_MAX_TOOL_ROUNDS, 10) || 8;
 
-const AI_API_KEY  = process.env.GEMINI_API_KEY || process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '';
-const AI_MODEL    = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-2.0-flash';
-
 if (!AI_API_KEY) {
-  console.warn('WARNING: GEMINI_API_KEY is missing. AI will not be able to reply.');
+  console.warn('WARNING: AI_API_KEY is missing. AI will not be able to reply.');
 }
 
-// Initialize Native Google SDK
-const genAI = AI_API_KEY ? new GoogleGenerativeAI(AI_API_KEY) : null;
+// Initialize OpenAI client (Groq-compatible)
+const openai = AI_API_KEY ? new OpenAI({
+  apiKey: AI_API_KEY,
+  baseURL: AI_BASE_URL
+}) : null;
 
-// Convert OpenAI tool format to Google Native tool format
-const googleTools = {
-  functionDeclarations: tools.map(t => ({
-    name: t.function.name,
-    description: t.function.description,
-    parameters: t.function.parameters
-  }))
-};
+if (openai) {
+  console.log(`[agent-worker] adapter: openai-compatible (${AI_MODEL}) at ${AI_BASE_URL}`);
+}
 
 // ─── System prompt ──────────────────────────────────────────
 const SYSTEM_PROMPT = `Та ерөнхий зорилготой ухаалаг AI туслагч. Хэрэглэгчтэй найрсаг, чөлөөтэй, бодит мэт ярилцана уу.
@@ -76,68 +75,57 @@ function unpackStored(raw) {
 }
 
 async function runAgentLoop(userId, rawMessage) {
-  if (!genAI) throw new Error('GEMINI_API_KEY тохируулаагүй байна');
+  if (!openai) throw new Error('AI API түлхүүр тохируулаагүй байна');
   
   const { message, history } = unpackStored(rawMessage);
   const useTools = textLooksBookingRelated(message + (history.map(h => h.content).join(' ')));
 
-  const model = genAI.getGenerativeModel({ 
-    model: AI_MODEL,
-    systemInstruction: SYSTEM_PROMPT,
-  });
+  const messages = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    ...history.map(h => ({ role: h.role, content: h.content })),
+    { role: 'user', content: message }
+  ];
 
-  // Google Native SDK requires history to start with 'user' and alternate roles.
-  // If history starts with 'assistant' (like our welcome message), we must drop it.
-  const sanitizedHistory = [];
-  let nextRole = 'user';
-  for (const h of history) {
-    const role = h.role === 'assistant' ? 'model' : 'user';
-    if (role === nextRole) {
-      sanitizedHistory.push({
-        role,
-        parts: [{ text: h.content }]
-      });
-      nextRole = nextRole === 'user' ? 'model' : 'user';
-    }
-  }
-
-  const chat = model.startChat({
-    history: sanitizedHistory,
-    tools: useTools ? [googleTools] : []
-  });
-
-  let result = await chat.sendMessage(message);
-  let response = result.response;
   let rounds = 0;
-
-  // Handle Function Calling
-  while (response.candidates[0].content.parts.some(p => p.functionCall) && rounds < MAX_TOOL_ROUNDS) {
+  while (rounds < MAX_TOOL_ROUNDS) {
     rounds++;
-    const toolCalls = response.candidates[0].content.parts.filter(p => p.functionCall);
-    const toolResponses = [];
+    const response = await openai.chat.completions.create({
+      model: AI_MODEL,
+      messages,
+      tools: useTools ? tools : undefined,
+    });
 
-    for (const tc of toolCalls) {
-      const call = tc.functionCall;
-      console.log(`[agent-worker] calling tool: ${call.name}`);
+    const choice = response.choices[0];
+    const assistantMessage = choice.message;
+    messages.push(assistantMessage);
+
+    if (!assistantMessage.tool_calls || assistantMessage.tool_calls.length === 0) {
+      return assistantMessage.content || 'Хариу ирсэнгүй.';
+    }
+
+    for (const toolCall of assistantMessage.tool_calls) {
+      const { name, arguments: argsJson } = toolCall.function;
+      console.log(`[agent-worker] calling tool: ${name}`);
+      let args = {};
+      try { args = JSON.parse(argsJson); } catch (e) {}
+      
       let toolResult;
       try {
-        toolResult = await executeTool(call.name, call.args, userId);
+        toolResult = await executeTool(name, args, userId);
       } catch (err) {
         toolResult = { error: err.message };
       }
-      toolResponses.push({
-        functionResponse: {
-          name: call.name,
-          response: { content: toolResult }
-        }
+
+      messages.push({
+        tool_call_id: toolCall.id,
+        role: 'tool',
+        name,
+        content: JSON.stringify(toolResult),
       });
     }
-
-    result = await chat.sendMessage(toolResponses);
-    response = result.response;
   }
 
-  return response.text() || 'Хариу ирсэнгүй.';
+  return 'Tool loop limit reached.';
 }
 
 // ─── Worker tick ────────────────────────────────────────────
@@ -150,7 +138,7 @@ async function tick() {
       continue;
     }
     if (!AI_API_KEY) {
-      console.warn('[agent-worker] IDLE: GEMINI_API_KEY is missing.');
+      console.warn('[agent-worker] IDLE: AI_API_KEY is missing.');
       await new Promise(r => setTimeout(r, 10000));
       continue;
     }

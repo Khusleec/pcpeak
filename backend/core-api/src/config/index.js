@@ -84,11 +84,11 @@ module.exports = {
     }
     return [...frontendOriginsList, ...corsExtraOriginsList].some(originHostnameEndsWithVercelApp);
   })(),
-  // Prefer GEMINI_*; AI_* / OPENAI_* still work as fallbacks.
+  // Prefer AI_*; OPENAI_* still work as fallbacks.
   ai: (() => {
-    const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '';
-    let baseUrl = process.env.GEMINI_BASE_URL || process.env.AI_BASE_URL || process.env.OPENAI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/';
-    const model = process.env.GEMINI_MODEL || process.env.AI_MODEL || process.env.OPENAI_MODEL || 'gemini-1.5-flash';
+    const apiKey = process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '';
+    let baseUrl = process.env.AI_BASE_URL || process.env.OPENAI_BASE_URL || 'https://api.groq.com/openai/v1';
+    const model = process.env.AI_MODEL || process.env.OPENAI_MODEL || 'llama3-70b-8192';
 
     // Strip /chat/completions suffix if present (SDK adds it)
     baseUrl = baseUrl.replace(/\/chat\/completions\/?$/, '');
