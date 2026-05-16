@@ -19,6 +19,7 @@ async function initDatabase() {
     // (Filtering whole statements that start with `--` was dropping
     //  every CREATE that had a comment header above it.)
     const stripped = schema
+    
       .split('\n')
       .filter((line) => !line.trim().startsWith('--'))
       .join('\n');
