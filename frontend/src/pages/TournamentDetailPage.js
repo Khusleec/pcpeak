@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { Trophy, ArrowLeft, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatMnDateTime } from '../utils/formatMnDateTime';
+import { isAdminRole } from '../utils/roles';
 
 const STATUS = {
   registration: 'БҮРТГЭЛ НЭЭЛТТЭЙ',
@@ -518,7 +519,7 @@ export default function TournamentDetailPage() {
                               <span className="display" style={{ fontSize: 16 }}>{m.score2}</span>
                             </div>
                           </div>
-                          {user && t.created_by === user.id && m.status !== 'finished' && (
+                          {user && (t.created_by === user.id || isAdminRole(user.role)) && m.status !== 'finished' && (
                             <button
                               className="btn btn-primary"
                               style={{ width: '100%', marginTop: 12, fontSize: 10, padding: '6px' }}

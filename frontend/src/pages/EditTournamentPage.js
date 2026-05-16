@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Trophy, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { isAdminRole } from '../utils/roles';
 
 function toLocalInput(iso) {
   if (!iso) return '';
@@ -56,7 +57,7 @@ export default function EditTournamentPage() {
         setCafes(Array.isArray(cafesRes.data) ? cafesRes.data : []);
         
         const t = tournamentRes.data;
-        if (t.created_by !== user.id) {
+        if (t.created_by !== user.id && !isAdminRole(user.role)) {
           toast.error('Зөвхөн зохион байгуулагч засварлах эрхтэй');
           navigate(`/tournaments/${id}`);
           return;
