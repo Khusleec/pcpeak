@@ -14,6 +14,28 @@ const http = require('node:http');
 const { OpenAI } = require('openai');
 require('dotenv').config();
 
+// ─── Config ─────────────────────────────────────────────────
+const POLL_INTERVAL_MS = parseInt(process.env.AGENT_POLL_INTERVAL_MS, 10) || 1000;
+const HEALTH_PORT      = parseInt(process.env.PORT || process.env.AGENT_HEALTH_PORT, 10) || 8090;
+const MAX_TOOL_ROUNDS  = parseInt(process.env.AGENT_MAX_TOOL_ROUNDS, 10) || 8;
+const AI_API_KEY       = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '';
+const AI_BASE_URL      = process.env.AI_BASE_URL || process.env.GEMINI_BASE_URL || process.env.OPENAI_BASE_URL || 'https://api.groq.com/openai/v1';
+const AI_MODEL         = process.env.AI_MODEL    || process.env.GEMINI_MODEL    || process.env.OPENAI_MODEL    || 'llama-3.3-70b-versatile';
+
+// ─── Tiny health HTTP endpoint ──────────────────────────────
+// Start this ASAP so the deployment platform sees the service as "up"
+const server = http.createServer((req, res) => {
+  if (req.url === '/health' || req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ service: 'agent-worker', status: 'ok' }));
+    return;
+  }
+  res.writeHead(404).end();
+});
+server.listen(HEALTH_PORT, '0.0.0.0', () => {
+  console.log(`[agent-worker] health endpoint on 0.0.0.0:${HEALTH_PORT}`);
+});
+
 // ─── Critical Check ─────────────────────────────────────────
 if (!process.env.DATABASE_URL) {
   console.error('agent-worker: DATABASE_URL is required');
@@ -22,14 +44,6 @@ if (!process.env.DATABASE_URL) {
 
 const pool = require('./db');
 const { tools, executeTool } = require('./tools');
-
-// ─── Config ─────────────────────────────────────────────────
-const POLL_INTERVAL_MS = parseInt(process.env.AGENT_POLL_INTERVAL_MS, 10) || 1000;
-const HEALTH_PORT      = parseInt(process.env.PORT || process.env.AGENT_HEALTH_PORT, 10) || 8090;
-const MAX_TOOL_ROUNDS  = parseInt(process.env.AGENT_MAX_TOOL_ROUNDS, 10) || 8;
-const AI_API_KEY       = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '';
-const AI_BASE_URL      = process.env.AI_BASE_URL || process.env.GEMINI_BASE_URL || process.env.OPENAI_BASE_URL || 'https://api.groq.com/openai/v1';
-const AI_MODEL         = process.env.AI_MODEL    || process.env.GEMINI_MODEL    || process.env.OPENAI_MODEL    || 'llama-3.3-70b-versatile';
 
 if (!AI_API_KEY) {
   console.warn('agent-worker: AI_API_KEY is not set — tasks will fail until you add a key.');
@@ -257,20 +271,6 @@ async function tick() {
     }
   }
 }
-
-// ─── Tiny health HTTP endpoint ──────────────────────────────
-const server = http.createServer((req, res) => {
-  if (req.url === '/health' || req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ service: 'agent-worker', status: 'ok' }));
-    return;
-  }
-  res.writeHead(404).end();
-});
-server.listen(HEALTH_PORT, () => {
-  console.log(`[agent-worker] health endpoint on :${HEALTH_PORT}`);
-  console.log(`[agent-worker] polling every ${POLL_INTERVAL_MS}ms`);
-});
 
 // ─── Graceful shutdown ──────────────────────────────────────
 const shutdown = async (sig) => {
