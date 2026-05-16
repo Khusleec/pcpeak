@@ -25,7 +25,7 @@ const POLL_INTERVAL_MS = parseInt(process.env.AGENT_POLL_INTERVAL_MS, 10) || 100
 const MAX_TOOL_ROUNDS  = parseInt(process.env.AGENT_MAX_TOOL_ROUNDS, 10) || 8;
 
 const AI_API_KEY  = process.env.GEMINI_API_KEY || process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '';
-const AI_MODEL    = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-1.5-flash-latest';
+const AI_MODEL    = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-2.0-flash';
 
 if (!AI_API_KEY) {
   console.warn('WARNING: GEMINI_API_KEY is missing. AI will not be able to reply.');
