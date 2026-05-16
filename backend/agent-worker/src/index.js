@@ -39,9 +39,22 @@ const { tools, executeTool } = require('./tools');
 
 const POLL_INTERVAL_MS = parseInt(process.env.AGENT_POLL_INTERVAL_MS, 10) || 1000;
 const MAX_TOOL_ROUNDS  = parseInt(process.env.AGENT_MAX_TOOL_ROUNDS, 10) || 8;
-const AI_API_KEY       = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '';
-const AI_BASE_URL      = process.env.AI_BASE_URL || process.env.GEMINI_BASE_URL || process.env.OPENAI_BASE_URL || 'https://api.groq.com/openai/v1';
-const AI_MODEL         = process.env.AI_MODEL    || process.env.GEMINI_MODEL    || process.env.OPENAI_MODEL    || 'llama-3.3-70b-versatile';
+
+let AI_API_KEY  = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '';
+let AI_BASE_URL = process.env.AI_BASE_URL || process.env.GEMINI_BASE_URL || process.env.OPENAI_BASE_URL || '';
+let AI_MODEL    = process.env.AI_MODEL    || process.env.GEMINI_MODEL    || process.env.OPENAI_MODEL    || 'llama-3.3-70b-versatile';
+
+// ─── Provider Auto-Detection & Sanitization ──────────────────
+if (AI_API_KEY.startsWith('AIzaSy') && !AI_BASE_URL) {
+  AI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/';
+  if (AI_MODEL.includes('llama')) AI_MODEL = 'gemini-1.5-flash';
+} else if (!AI_BASE_URL) {
+  AI_BASE_URL = 'https://api.groq.com/openai/v1';
+}
+
+// Strip /chat/completions suffix if user included it in env var (OpenAI SDK adds it)
+AI_BASE_URL = AI_BASE_URL.replace(/\/chat\/completions\/?$/, '');
+if (!AI_BASE_URL.endsWith('/')) AI_BASE_URL += '/';
 
 if (!AI_API_KEY) {
   console.warn('WARNING: AI_API_KEY is missing. AI will not be able to reply.');
