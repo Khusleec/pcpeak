@@ -1678,58 +1678,39 @@ p, span, label, button, input, a, div {
 .notice-banner__title { font-weight: 700; margin-bottom: 4px; color: var(--text); }
 .notice-banner__text { font-size: 10px; color: var(--text-muted); line-height: 1.5; }
 
-@media (max-width: 768px) {
-  .flex-between {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .booking-card > div {
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 16px;
-  }
-
-  .booking-card > div > div:last-child {
-    text-align: left !important;
-    width: 100%;
-  }
-
-  .notice-banner {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .tier-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-}
-
-/* ─── Responsive ────────────────────────────────────────── */
-
-/* Tablet (≤1024px) */
+/* ─── Responsive (Fluid Layout ≤ 1024px) ────────────────── */
 @media (max-width: 1024px) {
-  .container { padding: 0 20px; }
-  .page { padding: 24px 0 48px; }
-  .form-two-col { grid-template-columns: 1fr 1fr; gap: 20px; }
-}
-
-/* Phone (≤768px) */
-@media (max-width: 768px) {
   :root {
     --fs-body: 11px;
   }
 
   /* Layout */
-  .container { padding: 0 16px; width: 100% !important; max-width: 100% !important; overflow-x: hidden; }
-  .page { padding: 120px 0 48px; }
+  .container { 
+    padding: 0 16px; 
+    width: 100% !important; 
+    max-width: 100% !important; 
+    overflow-x: hidden; 
+  }
+  
+  .page { 
+    padding: 120px 0 48px; 
+  }
 
   /* Typography */
   h1, h2, h3 { font-size: 22px !important; line-height: 1.1; }
   .display { font-size: 22px !important; }
+
+  /* Navbar */
+  .navbar-wrapper {
+    top: 12px;
+  }
+
+  .navbar {
+    height: auto;
+    padding: 12px 16px;
+    width: calc(100% - 24px);
+    border-radius: 16px;
+  }
 
   .navbar .container {
     gap: 10px;
@@ -1763,18 +1744,35 @@ p, span, label, button, input, a, div {
     padding: 4px 0;
   }
 
-  .navbar-wrapper {
-    top: 12px;
+  /* Components */
+  .flex-between {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .navbar {
-    height: auto;
-    padding: 12px 16px;
-    width: calc(100% - 24px);
-    border-radius: 16px;
+  .booking-card {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 16px;
   }
 
-  /* Forms / map strip */
+  .booking-card > div:last-child {
+    text-align: left !important;
+    width: 100%;
+  }
+
+  .notice-banner {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tier-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
   .form-two-col {
     grid-template-columns: 1fr !important;
     gap: 16px;
@@ -1790,21 +1788,23 @@ p, span, label, button, input, a, div {
     padding: 12px;
   }
 
-  /* Hero */
+  /* Hero & Sections */
   .hero { padding: 32px 0; text-align: center; }
   .hero-title { font-size: clamp(28px, 10vw, 44px); margin-bottom: 12px; }
   .hero-sub { font-size: 10px; margin-bottom: 20px; max-width: 100%; }
 
+  .feature-grid { grid-template-columns: 1fr; gap: 12px; }
+  .feature-tile { border: 1px solid var(--line-bright); padding: 20px; }
+
+  /* Forms & Cards */
   .login-card {
     max-width: 100%;
     padding: 24px 20px;
   }
 
-  /* Feature grid */
-  .feature-grid { grid-template-columns: 1fr; gap: 12px; }
-  .feature-tile { border: 1px solid var(--line-bright); padding: 20px; }
-
-  /* Cafe layout */
+  .panel { padding: 16px; }
+  
+  /* Cafe Detail & Booking */
   .cafe-header { grid-template-columns: 1fr; text-align: center; gap: 16px; }
   .cafe-header-mark { margin: 0 auto; }
   
@@ -1833,7 +1833,6 @@ p, span, label, button, input, a, div {
   
   /* Wizard */
   .wizard-progress { margin-bottom: 24px !important; }
-  .panel { padding: 16px; }
 
   /* Chat Widget */
   .chat-panel {
