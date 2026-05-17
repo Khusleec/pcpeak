@@ -190,6 +190,8 @@ p, span, label, button, input, a, div {
 /* Specific overrides for map-home to hide scrollbar */
 .route-main.map-home-route {
   overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
 }
 
 .container {
