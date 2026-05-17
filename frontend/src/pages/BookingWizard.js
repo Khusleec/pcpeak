@@ -182,10 +182,10 @@ export default function BookingWizard() {
 
   return (
     <div className="page" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div className="container" style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 800 }}>
+      <div className="container wizard-container" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         
         {/* Wizard Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+        <div className="wizard-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
           <button className="btn btn-ghost" onClick={() => step === 1 ? navigate(-1) : paginate(-1)}>
             <ArrowLeft size={14} /> БУЦАХ
           </button>
@@ -195,7 +195,7 @@ export default function BookingWizard() {
         </div>
 
         {/* Wizard Progress Bar */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 48 }}>
+        <div className="wizard-progress" style={{ display: 'flex', gap: 8, marginBottom: 48 }}>
           <div style={{ flex: 1, height: 4, background: step >= 1 ? 'var(--red)' : 'var(--surface-2)', transition: 'background 0.3s' }} />
           <div style={{ flex: 1, height: 4, background: step >= 2 ? 'var(--red)' : 'var(--surface-2)', transition: 'background 0.3s' }} />
           <div style={{ flex: 1, height: 4, background: step >= 3 ? 'var(--red)' : 'var(--surface-2)', transition: 'background 0.3s' }} />

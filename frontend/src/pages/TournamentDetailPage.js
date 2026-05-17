@@ -253,7 +253,7 @@ export default function TournamentDetailPage() {
           <ArrowLeft size={12} /> БУЦАХ
         </Link>
 
-        <div className="section-head">
+        <div className="section-head flex-between">
           <div>
             <div className="section-eyebrow">// ТЭМЦЭЭН #{t.id}</div>
             <h2 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -261,13 +261,13 @@ export default function TournamentDetailPage() {
               {t.title?.toUpperCase()}
             </h2>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div className="responsive-flex">
             <span className={`booking-status ${STATUS_CLASS[t.status] || 'confirmed'}`}>
               <span className={STATUS_DOT[t.status] || 'dot live'} />
               {STATUS[t.status] || t.status}
             </span>
             {user && (t.created_by === user.id || isAdminRole(user.role)) && (
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div className="responsive-flex">
                 <Link to={`/tournaments/${t.id}/edit`} className="btn btn-primary" style={{ textDecoration: 'none' }}>
                   ЗАСВАРЛАХ
                 </Link>
@@ -281,47 +281,20 @@ export default function TournamentDetailPage() {
 
         <div className="detail-tab-bar">
           <button
-            className="mono"
+            className={`mono ${activeTab === 'info' ? 'active' : ''}`}
             onClick={() => setActiveTab('info')}
-            style={{
-              padding: '12px 4px',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'info' ? '2px solid var(--amber)' : '2px solid transparent',
-              color: activeTab === 'info' ? 'var(--text)' : 'var(--text-muted)',
-              cursor: 'pointer',
-              fontSize: 12,
-            }}
           >
             МЭДЭЭЛЭЛ
           </button>
           <button
-            className="mono"
+            className={`mono ${activeTab === 'participants' ? 'active' : ''}`}
             onClick={() => setActiveTab('participants')}
-            style={{
-              padding: '12px 4px',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'participants' ? '2px solid var(--amber)' : '2px solid transparent',
-              color: activeTab === 'participants' ? 'var(--text)' : 'var(--text-muted)',
-              cursor: 'pointer',
-              fontSize: 12,
-            }}
           >
             ОРОЛЦОГЧИД ({t.registered_count})
           </button>
           <button
-            className="mono"
+            className={`mono ${activeTab === 'matches' ? 'active' : ''}`}
             onClick={() => setActiveTab('matches')}
-            style={{
-              padding: '12px 4px',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'matches' ? '2px solid var(--amber)' : '2px solid transparent',
-              color: activeTab === 'matches' ? 'var(--text)' : 'var(--text-muted)',
-              cursor: 'pointer',
-              fontSize: 12,
-            }}
           >
             ТОГЛОЛТЫН ХУВААРЬ
           </button>

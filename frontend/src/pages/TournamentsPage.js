@@ -56,19 +56,19 @@ export default function TournamentsPage() {
   return (
     <div className="page">
       <div className="container">
-        <div className="section-head">
+        <div className="section-head flex-between">
           <div>
             <div className="section-eyebrow">// МОДУЛЬ_ТЭМЦЭЭН</div>
             <h2 className="section-title">ТЭМЦЭЭН</h2>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div className="responsive-flex">
             {user && (
               <Link to="/tournaments/new" className="btn btn-primary" style={{ textDecoration: 'none' }}>
                 + ШИНЭ ТЭМЦЭЭН
               </Link>
             )}
             <span className="section-meta">
-              {rows.length > 0 ? `${rows.length} ИДЭВХТЭЙ` : 'ОДОО ХООСОН'} // Сүлжээний арга хэмжээ
+              {rows.length > 0 ? `${rows.length} ИДЭВХТЭЙ` : 'ОДОО ХООСОН'}
             </span>
           </div>
         </div>

@@ -203,12 +203,12 @@ export default function BookingsPage() {
   return (
     <div className="page">
       <div className="container">
-        <div className="section-head">
+        <div className="section-head flex-between">
           <div>
             <div className="section-eyebrow">{`// МОДУЛЬ_002 — ЗАХИАЛГА`}</div>
             <h2 className="section-title">МИНИЙ ЗАХИАЛГА</h2>
           </div>
-          <div className="section-meta-row section-meta">
+          <div className="responsive-flex">
             <span className="stat-pill">{activeBookings.length > 0 ? `${activeBookings.length} идэвхтэй` : 'Идэвхтэй алга'}</span>
             <span className="stat-pill">{historyBookings.length} архивт</span>
           </div>
