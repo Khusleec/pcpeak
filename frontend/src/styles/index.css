@@ -1682,7 +1682,7 @@ p, span, label, button, input, a, div {
 .desktop-only { display: flex; }
 .navbar-mobile-toggle { display: none; }
 
-@media (max-width: 1024px) {
+@media (max-width: 700px) {
   .desktop-only { display: none !important; }
   .navbar-mobile-toggle {
     display: flex;
@@ -1747,7 +1747,7 @@ p, span, label, button, input, a, div {
     color: var(--red);
   }
 }
-@media (max-width: 1024px) {
+@media (max-width: 700px) {
   :root {
     --fs-body: 11px;
   }
