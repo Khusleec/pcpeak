@@ -1719,14 +1719,17 @@ p, span, label, button, input, a, div {
 
 /* Phone (≤768px) */
 @media (max-width: 768px) {
+  :root {
+    --fs-body: 11px;
+  }
+
   /* Layout */
-  .container { padding: 0 16px; width: 100%; max-width: 100%; overflow-x: hidden; }
+  .container { padding: 0 16px; width: 100% !important; max-width: 100% !important; overflow-x: hidden; }
   .page { padding: 16px 0 32px; }
 
   /* Typography */
-  h1, h2, h3 { font-size: 22px; line-height: 1.1; }
-  .display { font-size: 22px; }
-  --fs-body: 11px;
+  h1, h2, h3 { font-size: 22px !important; line-height: 1.1; }
+  .display { font-size: 22px !important; }
 
   .navbar .container {
     gap: 10px;
@@ -1760,9 +1763,13 @@ p, span, label, button, input, a, div {
     padding: 4px 0;
   }
 
+  .navbar-wrapper {
+    top: 12px;
+  }
+
   .navbar {
     height: auto;
-    padding: 12px 0;
+    padding: 8px 12px;
   }
 
   /* Forms / map strip */
@@ -1808,6 +1815,7 @@ p, span, label, button, input, a, div {
     border-top: 2px solid var(--red);
     margin: 0 -16px;
     padding: 16px;
+    clip-path: none;
   }
 
   /* PC Grid */

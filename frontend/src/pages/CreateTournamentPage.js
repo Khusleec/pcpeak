@@ -100,7 +100,7 @@ export default function CreateTournamentPage() {
 
   return (
     <div className="page">
-      <div className="container" style={{ maxWidth: 640 }}>
+      <div className="container">
         <Link to="/tournaments" className="label" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 20, textDecoration: 'none' }}>
           <ArrowLeft size={12} /> БУЦАХ
         </Link>
