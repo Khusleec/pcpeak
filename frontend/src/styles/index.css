@@ -570,8 +570,7 @@ p, span, label, button, input, a, div {
 
 .map-container--fullscreen {
   border: none;
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
   border-radius: 0;
   box-shadow: none;
 }
@@ -1704,46 +1703,60 @@ p, span, label, button, input, a, div {
 
   /* Navbar */
   .navbar-wrapper {
-    top: 12px;
+    top: 0;
+    padding: 8px;
   }
 
   .navbar {
     height: auto;
     padding: 12px 16px;
-    width: calc(100% - 24px);
-    border-radius: 16px;
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.8);
   }
 
   .navbar .container {
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
     justify-content: space-between;
+    width: 100%;
+    padding: 0;
   }
 
   .navbar-brand {
     font-size: 16px;
     order: 1;
+    margin-right: auto;
   }
 
   .navbar-user {
     order: 2;
     gap: 8px;
+    flex-shrink: 0;
   }
 
   .navbar-links {
     order: 3;
     width: 100%;
-    margin-top: 12px;
-    padding: 8px 0;
+    margin-top: 8px;
+    padding-top: 10px;
     border-top: 1px solid var(--line);
     justify-content: flex-start;
     overflow-x: auto;
-    gap: 16px;
+    gap: 4px;
+    scrollbar-width: none;
+  }
+
+  .navbar-links::-webkit-scrollbar {
+    display: none;
   }
 
   .navbar-links a {
     white-space: nowrap;
-    padding: 4px 0;
+    padding: 6px 12px;
+    background: var(--surface-1);
+    border: 1px solid var(--line-bright);
+    font-size: 10px;
   }
 
   /* Components */
