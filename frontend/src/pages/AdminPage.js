@@ -100,12 +100,12 @@ export default function AdminPage() {
           </span>
         </div>
 
-        <div className="booking-card" style={{ marginBottom: 20, alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div className="mono" style={{ flex: 1, minWidth: 200, fontSize: 10, color: 'var(--text-muted)', textTransform: 'none', lineHeight: 1.6 }}>
+        <div className="booking-card flex-between" style={{ marginBottom: 20, gap: 16 }}>
+          <div className="mono" style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'none', lineHeight: 1.6 }}>
             Энэ хуудсанд бүх хэрэглэгчийн захиалгын суурь жагсаалт харагдана. Зөвхөн <strong style={{ color: 'var(--text)' }}>admin</strong> (бүтэн системийн эрх — бүх тэмцээн/захиалга/төлбөр) болон{' '}
             <strong style={{ color: 'var(--text)' }}>moderator</strong> эрхээр нэвтэрсэн үед ажиллана.
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className="responsive-flex" style={{ flexShrink: 0 }}>
             <button type="button" className="btn btn-ghost" disabled={fetching} onClick={refresh}>
               <RefreshCw size={11} /> ШИНЭЧЛЭХ
             </button>

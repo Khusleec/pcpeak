@@ -201,7 +201,7 @@ export default function CafeMap({ fullscreen = false }) {
         {cafesWithCoords.map((cafe) => (
           <Marker key={cafe.id} position={cafe._pos} icon={cafeIcon}>
             <Popup>
-              <div style={{ minWidth: 200, fontFamily: 'Inter, sans-serif' }}>
+              <div style={{ maxWidth: 240, fontFamily: 'Inter, sans-serif' }}>
                 <div
                   style={{
                     fontFamily: 'Space Grotesk, sans-serif',

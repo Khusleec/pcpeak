@@ -427,7 +427,7 @@ export default function TournamentDetailPage() {
             ) : (
               <div className="booking-card" style={{ padding: 0 }}>
                 <div className="table-scroll">
-                  <table style={{ width: '100%', minWidth: 520, borderCollapse: 'collapse' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
                       <th className="label" style={{ padding: '12px 16px' }}>#</th>
