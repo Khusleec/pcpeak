@@ -38,7 +38,7 @@ export default function App() {
   const location = useLocation();
 
   return (
-    <>
+    <div className="app-root">
       <Toaster
         position="top-right"
         toastOptions={{
@@ -81,6 +81,6 @@ export default function App() {
         </AnimatePresence>
       </Suspense>
       <ChatWidget />
-    </>
+    </div>
   );
 }
