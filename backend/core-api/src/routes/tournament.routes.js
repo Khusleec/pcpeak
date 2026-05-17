@@ -13,6 +13,19 @@ const router = express.Router();
 
 const DEADLINE_SQL = 'COALESCE(t.registration_deadline, t.starts_at)';
 
+async function autoCloseRegistration(tournamentId) {
+  try {
+    await pool.query(
+      `UPDATE tournaments 
+       SET status = 'closed' 
+       WHERE id = ? AND status = 'registration' AND ${DEADLINE_SQL} <= NOW()`,
+      [tournamentId]
+    );
+  } catch (err) {
+    console.error('autoCloseRegistration error:', err);
+  }
+}
+
 function toSqlDateTime(iso) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
@@ -35,9 +48,18 @@ async function canViewPrivateTournament(row, userId) {
 router.get('/', optionalAuthenticateToken, async (req, res) => {
   try {
     const uid = req.user?.id || null;
+    
+    // Auto-close any tournaments that are past deadline
+    await pool.query(
+      `UPDATE tournaments 
+       SET status = 'closed' 
+       WHERE status = 'registration' AND ${DEADLINE_SQL} <= NOW()`
+    );
+
     let sql = `SELECT t.*,
               c.name AS cafe_name,
-              (SELECT COUNT(*) FROM tournament_registrations tr WHERE tr.tournament_id = t.id) AS registered_count
+              (SELECT COUNT(*) FROM tournament_registrations tr WHERE tr.tournament_id = t.id) AS registered_count,
+              (t.status = 'registration' AND ${DEADLINE_SQL} > NOW()) AS is_registration_open
        FROM tournaments t
        LEFT JOIN cafes c ON c.id = t.cafe_id
        WHERE t.status != 'cancelled'`;
@@ -128,10 +150,15 @@ router.get('/:id', optionalAuthenticateToken, async (req, res) => {
     if (!Number.isFinite(id) || id < 1) {
       return res.status(400).json({ error: 'Тэмцээний ID буруу байна' });
     }
+
+    // Auto-close if past deadline
+    await autoCloseRegistration(id);
+
     const rows = await pool.query(
       `SELECT t.*,
               c.name AS cafe_name,
-              (SELECT COUNT(*) FROM tournament_registrations tr WHERE tr.tournament_id = t.id) AS registered_count
+              (SELECT COUNT(*) FROM tournament_registrations tr WHERE tr.tournament_id = t.id) AS registered_count,
+              (t.status = 'registration' AND ${DEADLINE_SQL} > NOW()) AS is_registration_open
        FROM tournaments t
        LEFT JOIN cafes c ON c.id = t.cafe_id
        WHERE t.id = ?`,
@@ -455,16 +482,62 @@ router.patch('/:id/matches/:matchId', authenticateToken, validate(matchUpdateSch
   if (cols.length === 0) return res.status(400).json({ error: 'Шинэчлэх талбар байхгүй' });
 
   vals.push(matchId, id);
+  const client = await pool.connect();
   try {
-    const result = await pool.query(
+    await client.query('BEGIN');
+    const result = await client.query(
       `UPDATE tournament_matches SET ${cols.join(', ')} WHERE id = ? AND tournament_id = ?`,
       vals
     );
-    if (result.rowCount === 0) return res.status(404).json({ error: 'Тоглолт олдсонгүй' });
+    if (result.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Тоглолт олдсонгүй' });
+    }
+
+    // Automatic advancement logic for single elimination
+    const winnerId = patch.winner_id;
+    const status = patch.status;
+
+    if (winnerId && status === 'finished') {
+      // Get current match info
+      const currRows = await client.query(
+        'SELECT round, match_order, tournament_id FROM tournament_matches WHERE id = ?',
+        [matchId]
+      );
+      const curr = currRows.rows[0];
+      const nextRound = curr.round + 1;
+      const nextMatchOrder = Math.ceil(curr.match_order / 2);
+      const isPlayer1 = curr.match_order % 2 !== 0;
+
+      // Try to find the next match
+      const nextRows = await client.query(
+        'SELECT id FROM tournament_matches WHERE tournament_id = ? AND round = ? AND match_order = ?',
+        [id, nextRound, nextMatchOrder]
+      );
+
+      if (nextRows.rows.length > 0) {
+        // Update existing match
+        const nextId = nextRows.rows[0].id;
+        const playerCol = isPlayer1 ? 'player1_id' : 'player2_id';
+        await client.query(
+          `UPDATE tournament_matches SET ${playerCol} = ? WHERE id = ?`,
+          [winnerId, nextId]
+        );
+      } else {
+        // Create next match if appropriate (only if it's not the final or we want to pre-create)
+        // For now, we only update if it exists. If it doesn't, the organizer might need to generate next round
+        // OR we can automatically create it if curr.match_order was not the only match in that round.
+      }
+    }
+
+    await client.query('COMMIT');
     res.json({ ok: true });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('Update match:', err);
     res.status(500).json({ error: 'Тоглолт шинэчлэхэд алдаа гарлаа' });
+  } finally {
+    client.release();
   }
 });
 

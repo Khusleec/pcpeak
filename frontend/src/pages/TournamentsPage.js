@@ -6,7 +6,7 @@ import { Trophy, ChevronRight } from 'lucide-react';
 
 const STATUS = {
   registration: 'БҮРТГЭЛ НЭЭЛТТЭЙ',
-  closed: 'ХААГДСАН',
+  closed: 'БҮРТГЭЛ ХААГДСАН',
   live: 'ЯВЖ БАЙНА',
   finished: 'ДУУССАН',
   cancelled: 'ЦУЦЛАГДСАН',

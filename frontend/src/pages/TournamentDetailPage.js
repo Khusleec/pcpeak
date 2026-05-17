@@ -9,7 +9,7 @@ import { isAdminRole } from '../utils/roles';
 
 const STATUS = {
   registration: 'БҮРТГЭЛ НЭЭЛТТЭЙ',
-  closed: 'ХААГДСАН',
+  closed: 'БҮРТГЭЛ ХААГДСАН',
   live: 'ЯВЖ БАЙНА',
   finished: 'ДУУССАН',
   cancelled: 'ЦУЦЛАГДСАН',
@@ -73,6 +73,20 @@ export default function TournamentDetailPage() {
       .catch(() => setT(null))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const updateStatus = async (newStatus) => {
+    if (!window.confirm(`Төлөвийг [${STATUS[newStatus]}] болгох уу?`)) return;
+    setBusy(true);
+    try {
+      await api.patch(`/tournaments/${id}`, { status: newStatus });
+      toast.success('◆ ТӨЛӨВ ШИНЭЧЛЭГДЛЭЭ');
+      load();
+    } catch (err) {
+      toast.error('⚠ ' + (err.response?.data?.error || 'АЛДАА').toUpperCase());
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const deleteTournament = async () => {
     if (!window.confirm('Энэ тэмцээнийг бүрмөсөн устгахдаа итгэлтэй байна уу?')) return;
@@ -238,6 +252,8 @@ export default function TournamentDetailPage() {
   }
 
   const deadline = t.registration_deadline || t.starts_at;
+  const isRegistrationPastDeadline = new Date() > new Date(deadline);
+  const canRegister = t.status === 'registration' && !isRegistrationPastDeadline;
 
   const matchesByRound = matches.reduce((acc, m) => {
     const r = m.round || 1;
@@ -268,7 +284,17 @@ export default function TournamentDetailPage() {
             </span>
             {user && (t.created_by === user.id || isAdminRole(user.role)) && (
               <div className="responsive-flex">
-                <Link to={`/tournaments/${t.id}/edit`} className="btn btn-primary" style={{ textDecoration: 'none' }}>
+                {t.status === 'closed' && (
+                  <button className="btn btn-primary" onClick={() => updateStatus('live')} disabled={busy}>
+                    ТЭМЦЭЭН ЭХЛҮҮЛЭХ (LIVE)
+                  </button>
+                )}
+                {t.status === 'live' && (
+                  <button className="btn btn-primary" onClick={() => updateStatus('finished')} disabled={busy}>
+                    ТЭМЦЭЭН ДУУСГАХ (FINISH)
+                  </button>
+                )}
+                <Link to={`/tournaments/${t.id}/edit`} className="btn btn-ghost" style={{ textDecoration: 'none' }}>
                   ЗАСВАРЛАХ
                 </Link>
                 <button className="btn btn-danger" onClick={deleteTournament} disabled={busy}>
@@ -364,54 +390,62 @@ export default function TournamentDetailPage() {
               </div>
             </div>
 
-            {t.status === 'registration' && user && (
-              <div className="map-overlay" style={{ position: 'relative', minHeight: 0, padding: '18px 20px', marginBottom: 16 }}>
-                <div className="map-overlay__title" style={{ fontSize: 11, marginBottom: 10 }}>
-                  {t.user_registered ? 'ТА БҮРТГЭГДСЭН' : 'БҮРТГҮҮЛЭХ'}
-                </div>
-                {!t.user_registered && (
-                  <div style={{ marginBottom: 12 }}>
-                    <label className="label" style={{ display: 'block', marginBottom: 6 }}>
-                      Тоглоом доторх нэр (заавал биш)
-                    </label>
-                    <input
-                      className="mono"
-                      value={ingame}
-                      onChange={(e) => setIngame(e.target.value)}
-                      maxLength={120}
-                      placeholder="Riot / Steam нэр"
-                      style={{
-                        width: '100%',
-                        maxWidth: 360,
-                        padding: '10px 12px',
-                        background: 'var(--bg)',
-                        border: '1px solid var(--border)',
-                        color: 'var(--text)',
-                        fontSize: 12,
-                      }}
-                    />
+            {t.status === 'registration' && (
+              <>
+                {!canRegister ? (
+                  <div className="map-overlay map-overlay--warn" style={{ position: 'relative', minHeight: 0, padding: '14px 18px', marginBottom: 24 }}>
+                    <div className="map-overlay__msg" style={{ fontSize: 10 }}>
+                      БҮРТГЭЛИЙН ХУГАЦАА ДУУССАН (Зохион байгуулагч тоглолтын хуваарь гаргахыг хүлээнэ үү)
+                    </div>
+                  </div>
+                ) : user ? (
+                  <div className="map-overlay" style={{ position: 'relative', minHeight: 0, padding: '18px 20px', marginBottom: 16 }}>
+                    <div className="map-overlay__title" style={{ fontSize: 11, marginBottom: 10 }}>
+                      {t.user_registered ? 'ТА БҮРТГЭГДСЭН' : 'БҮРТГҮҮЛЭХ'}
+                    </div>
+                    {!t.user_registered && (
+                      <div style={{ marginBottom: 12 }}>
+                        <label className="label" style={{ display: 'block', marginBottom: 6 }}>
+                          Тоглоом доторх нэр (заавал биш)
+                        </label>
+                        <input
+                          className="mono"
+                          value={ingame}
+                          onChange={(e) => setIngame(e.target.value)}
+                          maxLength={120}
+                          placeholder="Riot / Steam нэр"
+                          style={{
+                            width: '100%',
+                            maxWidth: 360,
+                            padding: '10px 12px',
+                            background: 'var(--bg)',
+                            border: '1px solid var(--border)',
+                            color: 'var(--text)',
+                            fontSize: 12,
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {!t.user_registered ? (
+                        <button type="button" className="btn btn-primary" disabled={busy} onClick={register}>
+                          БҮРТГҮҮЛЭХ
+                        </button>
+                      ) : (
+                        <button type="button" className="btn btn-danger" disabled={busy} onClick={unregister}>
+                          БҮРТГЭЛ ЦУЦЛАХ
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="map-overlay map-overlay--warn" style={{ position: 'relative', minHeight: 0, padding: '14px 18px', marginBottom: 24 }}>
+                    <div className="map-overlay__msg" style={{ fontSize: 10 }}>
+                      Бүртгүүлэхийн тулд <Link to="/login">нэвтэрнэ үү</Link>.
+                    </div>
                   </div>
                 )}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {!t.user_registered ? (
-                    <button type="button" className="btn btn-primary" disabled={busy} onClick={register}>
-                      БҮРТГҮҮЛЭХ
-                    </button>
-                  ) : (
-                    <button type="button" className="btn btn-danger" disabled={busy} onClick={unregister}>
-                      БҮРТГЭЛ ЦУЦЛАХ
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {t.status === 'registration' && !user && (
-              <div className="map-overlay map-overlay--warn" style={{ position: 'relative', minHeight: 0, padding: '14px 18px', marginBottom: 24 }}>
-                <div className="map-overlay__msg" style={{ fontSize: 10 }}>
-                  Бүртгүүлэхийн тулд <Link to="/login">нэвтэрнэ үү</Link>.
-                </div>
-              </div>
+              </>
             )}
           </>
         )}
