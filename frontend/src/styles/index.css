@@ -1679,7 +1679,74 @@ p, span, label, button, input, a, div {
 .notice-banner__title { font-weight: 700; margin-bottom: 4px; color: var(--text); }
 .notice-banner__text { font-size: 10px; color: var(--text-muted); line-height: 1.5; }
 
-/* ─── Responsive (Fluid Layout ≤ 1024px) ────────────────── */
+.desktop-only { display: flex; }
+.navbar-mobile-toggle { display: none; }
+
+@media (max-width: 1024px) {
+  .desktop-only { display: none !important; }
+  .navbar-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+  .navbar-mobile-toggle:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .navbar.menu-open {
+    border-radius: 12px 12px 0 0;
+  }
+
+  .navbar-mobile-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--line-bright);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    padding: 20px;
+    z-index: 1000;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.6);
+  }
+
+  .navbar-mobile-links {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .navbar-mobile-links a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    font-style: italic;
+    color: var(--text-muted);
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--line-bright);
+  }
+
+  .navbar-mobile-links a:last-child {
+    border-bottom: none;
+  }
+
+  .navbar-mobile-links a.active {
+    color: var(--red);
+  }
+}
 @media (max-width: 1024px) {
   :root {
     --fs-body: 11px;
@@ -1766,15 +1833,21 @@ p, span, label, button, input, a, div {
     gap: 12px;
   }
 
+  /* Booking Cards */
   .booking-card {
-    flex-direction: column;
-    align-items: flex-start !important;
+    padding: 16px;
     gap: 16px;
   }
 
-  .booking-card > div:last-child {
-    text-align: left !important;
+  /* Tournament Cards */
+  .tournament-card {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .tournament-card-stats {
     width: 100%;
+    justify-content: flex-start;
   }
 
   .notice-banner {

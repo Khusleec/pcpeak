@@ -1,17 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Power, Database, Terminal, Trophy, Shield } from 'lucide-react';
+import { Power, Database, Terminal, Trophy, Shield, Menu, X } from 'lucide-react';
 import { isStaffRole } from '../utils/roles';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+    setIsMenuOpen(false);
   };
 
   const isActive = (p) => {
@@ -20,16 +22,19 @@ export default function Navbar() {
     return location.pathname === p ? 'active' : '';
   };
 
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
   return (
     <div className="navbar-wrapper">
-      <nav className="navbar">
+      <nav className={`navbar ${isMenuOpen ? 'menu-open' : ''}`}>
         <div className="container">
-          <Link to="/" className="navbar-brand">
+          <Link to="/" className="navbar-brand" onClick={() => setIsMenuOpen(false)}>
             <span className="navbar-brand-mark" />
             PC<span className="navbar-brand-divider">//</span>PEAK
           </Link>
 
-          <div className="navbar-links">
+          {/* Desktop Links */}
+          <div className="navbar-links desktop-only">
             <Link to="/tournaments" className={isActive('/tournaments')}><Trophy size={14} /> ТЭМЦЭЭН</Link>
             {user && <Link to="/bookings" className={isActive('/bookings')}><Database size={14} /> ЗАХИАЛГА</Link>}
             {user && isStaffRole(user.role) && (
@@ -39,7 +44,7 @@ export default function Navbar() {
 
           <div className="navbar-user">
             {user ? (
-              <>
+              <div className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <Link
                   to="/profile"
                   className={`navbar-user-link ${isActive('/profile')}`}
@@ -57,14 +62,53 @@ export default function Navbar() {
                 <button className="btn btn-ghost" onClick={handleLogout} style={{ padding: '8px 12px', borderRadius: '20px' }}>
                   <Power size={14} /> ГАРАХ
                 </button>
-              </>
+              </div>
             ) : (
-              <Link to="/login" className="btn btn-primary" style={{ borderRadius: '20px' }}>
+              <Link to="/login" className="btn btn-primary desktop-only" style={{ borderRadius: '20px' }}>
                 <Terminal size={14} /> НЭВТРЭХ
               </Link>
             )}
+            
+            <button className="navbar-mobile-toggle" onClick={toggleMenu} aria-label="Toggle menu">
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu Content */}
+        {isMenuOpen && (
+          <div className="navbar-mobile-menu">
+            <div className="navbar-mobile-links">
+              <Link to="/tournaments" className={isActive('/tournaments')} onClick={() => setIsMenuOpen(false)}>
+                <Trophy size={18} /> ТЭМЦЭЭН
+              </Link>
+              {user && (
+                <Link to="/bookings" className={isActive('/bookings')} onClick={() => setIsMenuOpen(false)}>
+                  <Database size={18} /> ЗАХИАЛГА
+                </Link>
+              )}
+              {user && isStaffRole(user.role) && (
+                <Link to="/admin" className={isActive('/admin')} onClick={() => setIsMenuOpen(false)}>
+                  <Shield size={18} /> АДМИН
+                </Link>
+              )}
+              <Link to="/profile" className={isActive('/profile')} onClick={() => setIsMenuOpen(false)}>
+                <Terminal size={18} /> ПРОФАЙЛ
+              </Link>
+              <div style={{ marginTop: 'auto', padding: '20px 0', borderTop: '1px solid var(--line)' }}>
+                {user ? (
+                  <button className="btn btn-danger btn-block" onClick={handleLogout}>
+                    <Power size={16} /> ГАРАХ
+                  </button>
+                ) : (
+                  <Link to="/login" className="btn btn-primary btn-block" onClick={() => setIsMenuOpen(false)}>
+                    <Terminal size={16} /> НЭВТРЭХ
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
     </div>
   );

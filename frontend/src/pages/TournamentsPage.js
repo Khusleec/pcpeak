@@ -85,46 +85,44 @@ export default function TournamentsPage() {
           </div>
         ) : (
           rows.map((t) => (
-            <Link key={t.id} to={`/tournaments/${t.id}`} className="booking-card" style={{ textDecoration: 'none', display: 'block', color: 'inherit' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <Trophy size={14} style={{ color: 'var(--amber)' }} />
-                    <span className="display" style={{ fontSize: 18, color: 'var(--text)' }}>
-                      {t.title?.toUpperCase()}
+            <Link key={t.id} to={`/tournaments/${t.id}`} className="booking-card tournament-card" style={{ textDecoration: 'none', display: 'flex', color: 'inherit' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+                  <Trophy size={14} style={{ color: 'var(--amber)' }} />
+                  <span className="display" style={{ fontSize: 18, color: 'var(--text)' }}>
+                    {t.title?.toUpperCase()}
+                  </span>
+                  <span className={`booking-status ${STATUS_CLASS[t.status] || 'confirmed'}`}>
+                    <span className={STATUS_DOT[t.status] || 'dot live'} />
+                    {STATUS[t.status] || t.status?.toUpperCase()}
+                  </span>
+                  {t.visibility === 'private' && (
+                    <span className="booking-status confirmed" style={{ marginLeft: 6 }}>
+                      <span className="dot" /> ХУВИЙН
                     </span>
-                    <span className={`booking-status ${STATUS_CLASS[t.status] || 'confirmed'}`}>
-                      <span className={STATUS_DOT[t.status] || 'dot live'} />
-                      {STATUS[t.status] || t.status?.toUpperCase()}
-                    </span>
-                    {t.visibility === 'private' && (
-                      <span className="booking-status confirmed" style={{ marginLeft: 6 }}>
-                        <span className="dot" /> ХУВИЙН
-                      </span>
-                    )}
-                  </div>
-                  <div className="mono" style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 8, textTransform: 'none' }}>
-                    {t.game_title} {t.cafe_name ? `:: ${t.cafe_name}` : ''}
-                  </div>
-                  {t.description && (
-                    <p className="label" style={{ color: 'var(--text-dim)', lineHeight: 1.5, maxWidth: 640 }}>
-                      {t.description}
-                    </p>
                   )}
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div className="label" style={{ marginBottom: 4 }}>// БҮРТГЭЛ</div>
-                  <div className="mono" style={{ color: 'var(--text)', fontSize: 14, marginBottom: 8 }}>
-                    {t.registered_count ?? 0} / {t.max_participants}
-                  </div>
-                  <div className="label" style={{ marginBottom: 4 }}>// ШАГНАЛ</div>
-                  <div className="display" style={{ fontSize: 20, color: 'var(--red)' }}>
-                    ₮{Math.round(Number(t.prize_pool_mnt || 0)).toLocaleString()}
-                  </div>
-                  <span className="btn btn-primary" style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 6, pointerEvents: 'none' }}>
-                    ДЭЛГЭРЭНГҮЙ <ChevronRight size={12} />
-                  </span>
+                <div className="mono" style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 8, textTransform: 'none' }}>
+                  {t.game_title} {t.cafe_name ? `:: ${t.cafe_name}` : ''}
                 </div>
+                {t.description && (
+                  <p className="label" style={{ color: 'var(--text-dim)', lineHeight: 1.5, maxWidth: 640 }}>
+                    {t.description}
+                  </p>
+                )}
+              </div>
+              <div className="tournament-card-stats" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center' }}>
+                <div className="label" style={{ marginBottom: 4 }}>// БҮРТГЭЛ</div>
+                <div className="mono" style={{ color: 'var(--text)', fontSize: 14, marginBottom: 8 }}>
+                  {t.registered_count ?? 0} / {t.max_participants}
+                </div>
+                <div className="label" style={{ marginBottom: 4 }}>// ШАГНАЛ</div>
+                <div className="display" style={{ fontSize: 20, color: 'var(--red)' }}>
+                  ₮{Math.round(Number(t.prize_pool_mnt || 0)).toLocaleString()}
+                </div>
+                <span className="btn btn-primary" style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 6, pointerEvents: 'none' }}>
+                  ДЭЛГЭРЭНГҮЙ <ChevronRight size={12} />
+                </span>
               </div>
             </Link>
           ))
