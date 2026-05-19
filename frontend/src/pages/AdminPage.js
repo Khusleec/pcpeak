@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
@@ -31,6 +31,17 @@ export default function AdminPage() {
 
   const allowed = useMemo(() => isStaffRole(user?.role), [user?.role]);
 
+  const refresh = useCallback(() => {
+    if (!allowed) return;
+    setFetching(true);
+    setErr(null);
+    api
+      .get('/bookings/all')
+      .then(({ data }) => setRows(Array.isArray(data) ? data : []))
+      .catch((e) => setErr(e.userMessage || e.response?.data?.error || e.message || 'Алдаа'))
+      .finally(() => setFetching(false));
+  }, [allowed]);
+
   useEffect(() => {
     if (loading) return;
     if (!user) {
@@ -43,18 +54,7 @@ export default function AdminPage() {
     }
 
     refresh();
-  }, [loading, user, navigate]);
-
-  const refresh = () => {
-    if (!allowed) return;
-    setFetching(true);
-    setErr(null);
-    api
-      .get('/bookings/all')
-      .then(({ data }) => setRows(Array.isArray(data) ? data : []))
-      .catch((e) => setErr(e.userMessage || e.response?.data?.error || e.message || 'Алдаа'))
-      .finally(() => setFetching(false));
-  };
+  }, [loading, user, navigate, refresh]);
 
   if (loading) {
     return (

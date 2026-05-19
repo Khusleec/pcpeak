@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { User, Mail, Shield, Database, LogOut, Map, LayoutDashboard, Layers, Key } from 'lucide-react';
+import { User, Mail, Shield, Database, LogOut, LayoutDashboard, Layers, Key } from 'lucide-react';
 import { isAdminRole, isModeratorRole } from '../utils/roles';
 
 export default function ProfilePage() {
