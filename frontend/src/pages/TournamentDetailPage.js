@@ -61,6 +61,8 @@ export default function TournamentDetailPage() {
   const [activeTab, setActiveTab] = useState('info'); // 'info', 'participants', 'matches'
   
   // Match Edit State
+  const [editingMatch, setEditingMatch] = useState(null);
+  const [matchScore, setMatchScore] = useState({ s1: 0, s2: 0, winnerId: null });
   const [bannerError, setBannerError] = useState(false);
 
   const load = useCallback(() => {
