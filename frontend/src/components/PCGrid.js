@@ -24,23 +24,12 @@ export default function PCGrid({ tiers, selectedPCs, onTogglePC }) {
         const available = tierGroup.pcs.filter((p) => p.is_available).length;
         const total = tierGroup.pcs.length;
 
-        const hasManualLayout = tierGroup.pcs.some(p => p.position_index !== null);
-        let renderedPcs = [];
-
-        if (hasManualLayout) {
-          const maxIdx = Math.max(...tierGroup.pcs.map(p => p.position_index || 0), 24);
-          const gridLength = Math.ceil((maxIdx + 1) / 5) * 5;
-          renderedPcs = Array.from({ length: gridLength }).map((_, i) => {
-            return tierGroup.pcs.find(p => p.position_index === i) || { spacer: true, id: `spacer-${i}` };
-          });
-        } else {
-          renderedPcs = [...tierGroup.pcs].sort((a, b) => {
-            const na = parseInt(a.label.replace(/[^0-9]/g, ''), 10) || a.label;
-            const nb = parseInt(b.label.replace(/[^0-9]/g, ''), 10) || b.label;
-            if (typeof na === 'number' && typeof nb === 'number') return na - nb;
-            return String(a.label).localeCompare(String(b.label));
-          });
-        }
+        const renderedPcs = [...tierGroup.pcs].sort((a, b) => {
+          const na = parseInt(a.label.replace(/[^0-9]/g, ''), 10) || a.label;
+          const nb = parseInt(b.label.replace(/[^0-9]/g, ''), 10) || b.label;
+          if (typeof na === 'number' && typeof nb === 'number') return na - nb;
+          return String(a.label).localeCompare(String(b.label));
+        });
 
         return (
           <motion.div
@@ -68,10 +57,8 @@ export default function PCGrid({ tiers, selectedPCs, onTogglePC }) {
               </div>
             </div>
 
-            <div className="pc-grid" style={hasManualLayout ? { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' } : {}}>
+            <div className="pc-grid">
               {renderedPcs.map((pc) => {
-                if (pc.spacer) return <div key={pc.id} className="pc-seat-spacer" style={{ height: 60, opacity: 0 }} />;
-
                 const isSelected = selectedPCs.includes(pc.id);
                 const isAvailable = pc.is_available;
                 let className = 'pc-seat';
