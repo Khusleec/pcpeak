@@ -68,12 +68,12 @@ router.get('/cafe/:cafeId', async (req, res) => {
     const { starts_at, ends_at } = req.query;
 
     const pcsResult = await pool.query(
-      `SELECT p.id, p.label, p.status, p.cafe_id,
+      `SELECT p.id, p.label, p.status, p.cafe_id, p.position_index,
               t.id AS tier_id, t.name AS tier_name, t.gpu, t.ram, t.cpu, t.price_per_hour
        FROM pcs p
        JOIN pc_tiers t ON p.tier_id = t.id
        WHERE p.cafe_id = ?
-       ORDER BY t.name, p.label`,
+       ORDER BY t.name, p.position_index ASC, p.label`,
       [cafeId]
     );
     const pcs = pcsResult.rows;
@@ -106,7 +106,7 @@ router.get('/cafe/:cafeId', async (req, res) => {
         };
       }
       grouped[pc.tier_name].pcs.push({
-        id: pc.id, label: pc.label, status: pc.status, is_available: pc.is_available,
+        id: pc.id, label: pc.label, status: pc.status, is_available: pc.is_available, position_index: pc.position_index
       });
     }
 
@@ -114,6 +114,32 @@ router.get('/cafe/:cafeId', async (req, res) => {
   } catch (err) {
     console.error('Get PCs error:', err);
     res.status(500).json({ error: 'Компьютеруудын мэдээлэл татаж чадсангүй' });
+  }
+});
+
+// ─── Admin: Update PC positions for manual layout ───────────
+router.patch('/layout', async (req, res) => {
+  const { positions } = req.body; // Array of { id, position_index }
+  if (!Array.isArray(positions)) return res.status(400).json({ error: 'Invalid payload' });
+  
+  try {
+    const client = await pool.getConnection();
+    try {
+      await client.beginTransaction();
+      for (const p of positions) {
+        await client.query('UPDATE pcs SET position_index = ? WHERE id = ?', [p.position_index, p.id]);
+      }
+      await client.commit();
+      res.json({ success: true });
+    } catch (e) {
+      await client.rollback();
+      throw e;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('Update layout error:', err);
+    res.status(500).json({ error: 'Layout хадгалахад алдаа гарлаа' });
   }
 });
 

@@ -86,6 +86,8 @@ router.get('/', optionalAuthenticateToken, async (req, res) => {
   }
 });
 
+const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop';
+
 // ─── Create tournament (organizer) ─────────────────────────
 router.post('/', authenticateToken, validate(createTournamentSchema), async (req, res) => {
   const b = req.body;
@@ -108,13 +110,18 @@ router.post('/', authenticateToken, validate(createTournamentSchema), async (req
     }
   }
   try {
+    const imageUrl = (b.image_url != null && String(b.image_url).trim() !== '') 
+      ? b.image_url 
+      : DEFAULT_BANNER;
+
     const ins = await pool.query(
       `INSERT INTO tournaments (
-        title, description, game_title, cafe_id, starts_at, ends_at, registration_deadline,
+        title, image_url, description, game_title, cafe_id, starts_at, ends_at, registration_deadline,
         max_participants, prize_pool_mnt, status, created_by, visibility, setup_mode, bracket_type
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'registration', ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'registration', ?, ?, ?, ?)`,
       [
         b.title,
+        imageUrl,
         b.description != null ? String(b.description).trim() || null : null,
         b.game_title,
         b.cafe_id ?? null,

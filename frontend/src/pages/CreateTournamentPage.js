@@ -21,6 +21,7 @@ export default function CreateTournamentPage() {
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
     title: '',
+    image_url: '',
     description: '',
     game_title: '',
     cafe_id: '',
@@ -61,6 +62,7 @@ export default function CreateTournamentPage() {
         : null;
       const payload = {
         title: form.title.trim(),
+        image_url: form.image_url.trim() || null,
         description: form.description.trim() || null,
         game_title: form.game_title.trim(),
         cafe_id: form.cafe_id ? parseInt(form.cafe_id, 10) : null,
@@ -124,6 +126,16 @@ export default function CreateTournamentPage() {
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               maxLength={255}
+              style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+            />
+          </div>
+          <div>
+            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Баннер зураг (URL)</label>
+            <input
+              className="mono"
+              value={form.image_url}
+              onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+              placeholder="https://... (хоосон орхивол дефолт баннер ашиглана)"
               style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
             />
           </div>

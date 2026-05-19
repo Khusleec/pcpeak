@@ -61,8 +61,7 @@ export default function TournamentDetailPage() {
   const [activeTab, setActiveTab] = useState('info'); // 'info', 'participants', 'matches'
   
   // Match Edit State
-  const [editingMatch, setEditingMatch] = useState(null);
-  const [matchScore, setMatchScore] = useState({ s1: 0, s2: 0, winnerId: null });
+  const [bannerError, setBannerError] = useState(false);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -304,6 +303,44 @@ export default function TournamentDetailPage() {
             )}
           </div>
         </div>
+
+        {t.image_url && (
+          <div style={{ 
+            width: '100%', 
+            height: 240, 
+            borderRadius: 2, 
+            overflow: 'hidden', 
+            marginBottom: 24, 
+            border: '1px solid var(--border)',
+            position: 'relative',
+            background: bannerError ? 'linear-gradient(135deg, #1a1a1a 0%, #333 100%)' : 'linear-gradient(45deg, var(--bg-card), var(--border))',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            {!bannerError ? (
+              <img 
+                src={t.image_url} 
+                alt={t.title} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                onError={() => setBannerError(true)}
+              />
+            ) : (
+              <div style={{ color: 'var(--amber)', fontFamily: 'var(--font-display)', fontSize: 24, letterSpacing: 4, opacity: 0.5 }}>
+                MONGOL PC TOURNAMENT
+              </div>
+            )}
+            <div style={{ 
+              position: 'absolute', 
+              bottom: 0, 
+              left: 0, 
+              right: 0, 
+              height: '50%', 
+              background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+              pointerEvents: 'none'
+            }} />
+          </div>
+        )}
 
         <div className="detail-tab-bar">
           <button

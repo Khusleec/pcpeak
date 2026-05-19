@@ -7,6 +7,7 @@ const registerSchema = z.object({
 const createTournamentSchema = z
   .object({
     title: z.string().trim().min(1, 'Гарчиг шаардлагатай').max(255),
+    image_url: z.string().url('Зурагны линк буруу байна').nullish().or(z.literal('')),
     description: z.string().trim().max(8000).nullish(),
     game_title: z.string().trim().min(1, 'Тоглоомын нэр шаардлагатай').max(200),
     cafe_id: z.number().int().positive().nullish(),
@@ -27,6 +28,7 @@ const createTournamentSchema = z
 const updateTournamentSchema = z
   .object({
     title: z.string().trim().min(1).max(255).optional(),
+    image_url: z.string().url('Зурагны линк буруу байна').nullish().or(z.literal('')).optional(),
     description: z.string().trim().max(8000).nullish(),
     game_title: z.string().trim().min(1).max(200).optional(),
     cafe_id: z.number().int().positive().nullish(),

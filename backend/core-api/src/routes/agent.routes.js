@@ -47,7 +47,7 @@ function agentChatAsyncOnly() {
 // ─── POST /api/agent/chat — enqueue + wait for worker ───────
 router.post('/chat', authenticateToken, async (req, res) => {
   try {
-    const { message, history } = req.body || {};
+    const { message, history, location } = req.body || {};
     if (!message || typeof message !== 'string' || !message.trim()) {
       return res.status(400).json({ error: 'Зурвас оруулна уу' });
     }
@@ -56,12 +56,19 @@ router.post('/chat', authenticateToken, async (req, res) => {
     // gets conversation context. Worker recognises the v1 envelope; falls
     // back to plain string for legacy rows.
     let stored = message.trim();
-    if (Array.isArray(history) && history.length > 0) {
-      const safeHistory = history
-        .filter((h) => h && (h.role === 'user' || h.role === 'assistant') && typeof h.content === 'string')
-        .slice(-12)
-        .map((h) => ({ role: h.role, content: String(h.content).slice(0, 4000) }));
-      stored = JSON.stringify({ v: 1, message: message.trim(), history: safeHistory });
+    if ((Array.isArray(history) && history.length > 0) || location) {
+      const safeHistory = Array.isArray(history) 
+        ? history
+            .filter((h) => h && (h.role === 'user' || h.role === 'assistant') && typeof h.content === 'string')
+            .slice(-12)
+            .map((h) => ({ role: h.role, content: String(h.content).slice(0, 4000) }))
+        : [];
+      stored = JSON.stringify({ 
+        v: 1, 
+        message: message.trim(), 
+        history: safeHistory,
+        location: location && typeof location.lat === 'number' && typeof location.lng === 'number' ? location : null
+      });
     }
 
     const taskId = uuidv4();

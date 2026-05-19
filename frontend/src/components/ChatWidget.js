@@ -49,6 +49,19 @@ export default function ChatWidget() {
     if (!input.trim() || loading) return;
     const userMsg = input.trim();
     setInput('');
+
+    let location = null;
+    if (navigator.geolocation) {
+      try {
+        const pos = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+        });
+        location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      } catch (err) {
+        console.warn('Location access denied or timeout');
+      }
+    }
+
     // Capture history BEFORE we append the new user message so the server
     // gets prior turns as context (last 12 turns max to stay under token limits).
     const history = messages
@@ -66,7 +79,7 @@ export default function ChatWidget() {
       // abort before the API returns 200 or 202.
       const response = await api.post(
         '/agent/chat',
-        { message: userMsg, history },
+        { message: userMsg, history, location },
         { signal: controller.signal, timeout: 120_000 }
       );
       if (chatAbortRef.current !== controller) return;
