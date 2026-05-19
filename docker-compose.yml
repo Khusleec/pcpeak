@@ -30,6 +30,21 @@ services:
     networks:
       - rigup-network
 
+  # ─── Redis 7 (Cache) ────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: rigup-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rigup-network
+
   # ─── core-api (HTTP service) ────────────────────────────
   core-api:
     build:
@@ -47,6 +62,7 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       TRUST_PROXY: ${TRUST_PROXY:-false}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       # true = pending_payment + demo invoice without QPay keys (set false when using real QPAY_*).
       PAYMENTS_DEMO_MODE: ${PAYMENTS_DEMO_MODE:-true}
       QPAY_INVOICE_CODE: ${QPAY_INVOICE_CODE:-}
@@ -62,6 +78,8 @@ services:
       - "${CORE_API_PORT:-4000}:4000"
     depends_on:
       mysql:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:4000/api/health"]

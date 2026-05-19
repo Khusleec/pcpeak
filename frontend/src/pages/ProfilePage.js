@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { User, Mail, Shield, Database, LogOut, Map, LayoutDashboard, Layers } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { User, Mail, Shield, Database, LogOut, Map, LayoutDashboard, Layers, Key } from 'lucide-react';
 import { isAdminRole, isModeratorRole } from '../utils/roles';
 
 export default function ProfilePage() {
@@ -10,6 +11,11 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const [stats, setStats] = useState({ total: 0, confirmed: 0, pending: 0, cancelled: 0, completed: 0, spend: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
+
+  // Change Password State
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [passwords, setPasswords] = useState({ current: '', next: '', confirm: '' });
+  const [changing, setChanging] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -37,6 +43,28 @@ export default function ProfilePage() {
       .catch(() => {})
       .finally(() => setStatsLoading(false));
   }, [user, loading, navigate]);
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (passwords.next !== passwords.confirm) {
+      toast.error('ШИНЭ НУУЦ ҮГ ЗӨРҮҮТЭЙ БАЙНА');
+      return;
+    }
+    setChanging(true);
+    try {
+      await api.post('/auth/change-password', {
+        currentPassword: passwords.current,
+        newPassword: passwords.next
+      });
+      toast.success('НУУЦ ҮГ АМЖИЛТТАЙ СОЛИГДЛОО');
+      setShowChangePassword(false);
+      setPasswords({ current: '', next: '', confirm: '' });
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'АЛДАА ГАРЛАА');
+    } finally {
+      setChanging(false);
+    }
+  };
 
   if (loading || !user) {
     return (
@@ -126,9 +154,9 @@ export default function ProfilePage() {
             <Link to="/bookings" className="btn btn-primary" style={{ padding: '8px 14px' }}>
               <Database size={11} /> МИНИЙ ЗАХИАЛГА
             </Link>
-            <Link to="/map" className="btn btn-ghost" style={{ padding: '8px 14px' }}>
-              <Map size={11} /> САЛБАРУУД
-            </Link>
+            <button className="btn btn-ghost" style={{ padding: '8px 14px' }} onClick={() => setShowChangePassword(!showChangePassword)}>
+              <Key size={11} /> НУУЦ ҮГ СОЛИХ
+            </button>
             <button
               className="btn btn-danger"
               onClick={() => {
@@ -141,6 +169,51 @@ export default function ProfilePage() {
             </button>
           </div>
         </div>
+
+        {showChangePassword && (
+          <div className="booking-card" style={{ marginBottom: 24, flexDirection: 'column', alignItems: 'stretch' }}>
+            <div className="section-eyebrow" style={{ marginBottom: 12 }}>// НУУЦ ҮГ ШИНЭЧЛЭХ</div>
+            <form onSubmit={handleChangePassword} className="responsive-flex" style={{ gap: 16, alignItems: 'flex-end' }}>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <label style={{ fontSize: 9 }}>ОДООГИЙН НУУЦ ҮГ</label>
+                <input 
+                  type="password" 
+                  value={passwords.current} 
+                  onChange={e => setPasswords({...passwords, current: e.target.value})}
+                  placeholder="········"
+                  required 
+                  disabled={changing}
+                />
+              </div>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <label style={{ fontSize: 9 }}>ШИНЭ НУУЦ ҮГ</label>
+                <input 
+                  type="password" 
+                  value={passwords.next} 
+                  onChange={e => setPasswords({...passwords, next: e.target.value})}
+                  placeholder="········"
+                  required 
+                  minLength={8}
+                  disabled={changing}
+                />
+              </div>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <label style={{ fontSize: 9 }}>НУУЦ ҮГ ДАВТАХ</label>
+                <input 
+                  type="password" 
+                  value={passwords.confirm} 
+                  onChange={e => setPasswords({...passwords, confirm: e.target.value})}
+                  placeholder="········"
+                  required 
+                  disabled={changing}
+                />
+              </div>
+              <button type="submit" className="btn btn-primary" disabled={changing} style={{ padding: '12px 20px' }}>
+                {changing ? '...' : 'ХАДГАЛАХ'}
+              </button>
+            </form>
+          </div>
+        )}
 
         {(isAdminRole(user.role) || isModeratorRole(user.role)) && (
           <div className="booking-card" style={{ marginBottom: 24, alignItems: 'stretch', flexDirection: 'column', gap: 16 }}>

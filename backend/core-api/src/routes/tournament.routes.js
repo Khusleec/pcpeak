@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../db/pool');
 const { authenticateToken, optionalAuthenticateToken, userIsAdmin } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
+const cacheMiddleware = require('../middleware/cache');
 const {
   registerSchema,
   createTournamentSchema,
@@ -45,7 +46,7 @@ async function canViewPrivateTournament(row, userId) {
 }
 
 // ─── List tournaments (visibility-aware) ───────────────────
-router.get('/', optionalAuthenticateToken, async (req, res) => {
+router.get('/', optionalAuthenticateToken, cacheMiddleware(60), async (req, res) => {
   try {
     const uid = req.user?.id || null;
     
@@ -151,7 +152,7 @@ router.post('/', authenticateToken, validate(createTournamentSchema), async (req
 });
 
 // ─── Single tournament + optional “am I registered?” ───────
-router.get('/:id', optionalAuthenticateToken, async (req, res) => {
+router.get('/:id', optionalAuthenticateToken, cacheMiddleware(60), async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (!Number.isFinite(id) || id < 1) {

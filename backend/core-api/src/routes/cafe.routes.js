@@ -3,11 +3,12 @@ const pool = require('../db/pool');
 const { authenticateToken, authorize } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const { createCafeSchema } = require('../validators/cafe.validator');
+const cacheMiddleware = require('../middleware/cache');
 
 const router = express.Router();
 
 // ─── Get All Cafes (public) ─────────────────────────────────
-router.get('/', async (req, res) => {
+router.get('/', cacheMiddleware(60), async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT c.*,
@@ -23,7 +24,7 @@ router.get('/', async (req, res) => {
 });
 
 // ─── Get Single Cafe ────────────────────────────────────────
-router.get('/:id', async (req, res) => {
+router.get('/:id', cacheMiddleware(60), async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT c.*,

@@ -12,6 +12,7 @@ const {
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  changePasswordSchema,
 } = require('../validators/auth.validator');
 const { sendPasswordResetEmail } = require('../utils/email');
 
@@ -312,6 +313,40 @@ router.post('/reset-password', validate(resetPasswordSchema), async (req, res) =
   } catch (err) {
     console.error('Reset password error:', err);
     res.status(500).json({ error: 'Нууц үг шинэчлэхэд алдаа гарлаа' });
+  }
+});
+
+/**
+ * Change Password (logged-in users)
+ */
+router.post('/change-password', authenticateToken, validate(changePasswordSchema), async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    // Get user
+    const result = await pool.query('SELECT password_hash FROM users WHERE id = ?', [userId]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Хэрэглэгч олдсонгүй' });
+
+    const user = result.rows[0];
+    if (!user.password_hash) {
+      return res.status(400).json({ error: 'Та Google-ээр нэвтэрсэн байна. Нууц үг тохируулаагүй байна.' });
+    }
+
+    // Verify current password
+    const valid = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!valid) {
+      return res.status(401).json({ error: 'Одоогийн нууц үг буруу байна' });
+    }
+
+    // Update password
+    const new_hash = await bcrypt.hash(newPassword, 12);
+    await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [new_hash, userId]);
+
+    res.json({ message: 'Нууц үг амжилттай солигдлоо' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: 'Нууц үг солиход алдаа гарлаа' });
   }
 });
 

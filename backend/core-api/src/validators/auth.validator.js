@@ -20,4 +20,9 @@ const resetPasswordSchema = z.object({
   password: z.string().min(8, 'Нууц үг доод тал нь 8 тэмдэгт байх ёстой').max(128),
 });
 
-module.exports = { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema };
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Одоогийн нууц үгээ оруулна уу'),
+  newPassword: z.string().min(8, 'Шинэ нууц үг доод тал нь 8 тэмдэгт байх ёстой').max(128),
+});
+
+module.exports = { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema };
