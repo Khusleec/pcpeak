@@ -15,13 +15,17 @@ export default function CafesPage() {
   const fetchCafes = async () => {
     try {
       const res = await api.get('/cafes');
-      console.log('Cafes data:', res.data); // Debugging
       setCafes(res.data);
     } catch (err) {
       toast.error(err.userMessage || 'Салбаруудын мэдээлэл татаж чадсангүй');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageError = (e) => {
+    e.target.src = 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=320&h=180';
+    e.target.onerror = null; // Prevent infinite loop
   };
 
   if (loading) {
@@ -48,13 +52,12 @@ export default function CafesPage() {
         {cafes.map((cafe) => (
           <div key={cafe.id} className="card cafe-card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', border: '1px solid var(--border)', transition: 'transform 0.2s ease, border-color 0.2s ease' }}>
             <div className="cafe-image" style={{ height: 180, overflow: 'hidden', background: 'var(--bg-muted)', position: 'relative' }}>
-              {cafe.image_url ? (
-                <img src={`${cafe.image_url}?v=2`} alt={cafe.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Monitor size={48} color="var(--border)" />
-                </div>
-              )}
+              <img 
+                src={cafe.image_url ? `${cafe.image_url}?v=3` : 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=320&h=180'} 
+                alt={cafe.name} 
+                onError={handleImageError}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
               <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', padding: '4px 10px', borderRadius: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Star size={12} color="#FFD700" fill="#FFD700" />
                 <span className="mono" style={{ fontSize: 12, color: '#fff', fontWeight: 'bold' }}>4.9</span>
