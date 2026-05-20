@@ -1,6 +1,6 @@
 {
   "build": {
-    "builder": "DOCKERFILE"
+    "builder": "NIXPACKS"
   },
   "deploy": {
     "restartPolicyType": "ON_FAILURE",

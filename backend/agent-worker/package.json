@@ -4,6 +4,9 @@
   "private": true,
   "description": "Rigup AI agent worker — drains agent_tasks queue, runs LLM + tool loop.",
   "main": "src/index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js"
