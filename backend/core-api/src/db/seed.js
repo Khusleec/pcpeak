@@ -6,10 +6,10 @@ const pool = require('./pool');
 // ============================================================
 const CAFES = [
   {
-    name: 'Mongol PC — Төв',
-    address: 'Энх Тайвны өргөн чөлөө 15, Сүхбаатар дүүрэг, Улаанбаатар',
-    latitude: 47.9184676,
-    longitude: 106.9177016,
+    name: 'Pro Gaming',
+    address: 'Баянгол дүүрэг, Улаанбаатар',
+    latitude: 47.9100,
+    longitude: 106.8700,
     phone: '+976-7000-1234',
     image_url: '/images/cafe-central.jpg',
     zaal: 12,
@@ -36,10 +36,10 @@ const CAFES = [
     vip: 5,
   },
   {
-    name: 'Mongol PC — Сүхбаатарын талбай',
-    address: 'Бага тойруу 23, Сүхбаатарын талбай, Улаанбаатар',
-    latitude: 47.9189,
-    longitude: 106.9176,
+    name: 'P Gaming',
+    address: '100 айл, Сүхбаатар дүүрэг, Улаанбаатар',
+    latitude: 47.9300,
+    longitude: 106.9200,
     phone: '+976-7000-2200',
     image_url: '/images/cafe-square.jpg',
     zaal: 14,
