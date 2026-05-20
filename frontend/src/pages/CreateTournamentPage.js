@@ -102,7 +102,7 @@ export default function CreateTournamentPage() {
 
   return (
     <div className="page">
-      <div className="container">
+      <div className="container" style={{ maxWidth: 900 }}>
         <Link to="/tournaments" className="label" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 20, textDecoration: 'none' }}>
           <ArrowLeft size={12} /> БУЦАХ
         </Link>
@@ -117,163 +117,201 @@ export default function CreateTournamentPage() {
           </div>
         </div>
 
-        <form className="booking-card" onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Гарчиг</label>
-            <input
-              className="mono"
-              required
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              maxLength={255}
-              style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-            />
-          </div>
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Баннер зураг (URL)</label>
-            <input
-              className="mono"
-              value={form.image_url}
-              onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-              placeholder="https://... (хоосон орхивол дефолт баннер ашиглана)"
-              style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-            />
-          </div>
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Тоглоом</label>
-            <input
-              className="mono"
-              required
-              value={form.game_title}
-              onChange={(e) => setForm({ ...form, game_title: e.target.value })}
-              maxLength={200}
-              placeholder="Valorant, CS2, …"
-              style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-            />
-          </div>
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Тайлбар</label>
-            <textarea
-              className="mono"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              rows={3}
-              style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', resize: 'vertical' }}
-            />
-          </div>
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Салбар</label>
-            <select
-              className="mono"
-              value={form.cafe_id}
-              onChange={(e) => setForm({ ...form, cafe_id: e.target.value })}
-              style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-            >
-              <option value="">— Сонгохгүй —</option>
-              {cafes.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="form-two-col">
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Section 1: Basic Info */}
+          <div className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div className="label-red" style={{ marginBottom: 4 }}>[01] ҮНДСЭН МЭДЭЭЛЭЛ</div>
+            
             <div>
-              <label className="label" style={{ display: 'block', marginBottom: 6 }}>Эхлэх</label>
+              <label className="label" style={{ display: 'block', marginBottom: 6 }}>Гарчиг</label>
               <input
-                type="datetime-local"
                 className="mono"
                 required
-                value={form.starts_at}
-                onChange={(e) => setForm({ ...form, starts_at: e.target.value })}
-                style={{ width: '100%', padding: '10px 8px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 12 }}
-              />
-            </div>
-            <div>
-              <label className="label" style={{ display: 'block', marginBottom: 6 }}>Дуусах</label>
-              <input
-                type="datetime-local"
-                className="mono"
-                required
-                value={form.ends_at}
-                onChange={(e) => setForm({ ...form, ends_at: e.target.value })}
-                style={{ width: '100%', padding: '10px 8px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 12 }}
-              />
-            </div>
-          </div>
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Бүртгэлийн дуусах (заавал биш)</label>
-            <input
-              type="datetime-local"
-              className="mono"
-              value={form.registration_deadline}
-              onChange={(e) => setForm({ ...form, registration_deadline: e.target.value })}
-              style={{ width: '100%', maxWidth: 280, padding: '10px 8px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 12 }}
-            />
-          </div>
-          <div className="form-two-col">
-            <div>
-              <label className="label" style={{ display: 'block', marginBottom: 6 }}>Дээд оролцогч</label>
-              <input
-                type="number"
-                min={2}
-                max={512}
-                className="mono"
-                value={form.max_participants}
-                onChange={(e) => setForm({ ...form, max_participants: e.target.value })}
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                maxLength={255}
+                placeholder="Тэмцээний нэр"
                 style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
               />
             </div>
+
+            <div className="form-two-col">
+              <div>
+                <label className="label" style={{ display: 'block', marginBottom: 6 }}>Тоглоом</label>
+                <input
+                  className="mono"
+                  required
+                  value={form.game_title}
+                  onChange={(e) => setForm({ ...form, game_title: e.target.value })}
+                  maxLength={200}
+                  placeholder="Valorant, CS2, …"
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                />
+              </div>
+              <div>
+                <label className="label" style={{ display: 'block', marginBottom: 6 }}>Баннер зураг (URL)</label>
+                <input
+                  className="mono"
+                  value={form.image_url}
+                  onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                  placeholder="https://... (хоосон орхивол дефолт)"
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="label" style={{ display: 'block', marginBottom: 6 }}>Шагналын сан (₮)</label>
-              <input
-                type="number"
-                min={0}
-                step={1000}
+              <label className="label" style={{ display: 'block', marginBottom: 6 }}>Тайлбар</label>
+              <textarea
                 className="mono"
-                value={form.prize_pool_mnt}
-                onChange={(e) => setForm({ ...form, prize_pool_mnt: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                rows={3}
+                placeholder="Тэмцээний дүрэм, мэдээлэл..."
+                style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', resize: 'vertical' }}
               />
             </div>
           </div>
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Харагдах байдал</label>
-            <select
-              className="mono"
-              value={form.visibility}
-              onChange={(e) => setForm({ ...form, visibility: e.target.value })}
-              style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-            >
-              <option value="public">Нээлттэй — жагсаалтанд харагдана</option>
-              <option value="private">Хувийн — зөвхөн та + бүртгэгдсэн хүмүүс</option>
-            </select>
+
+          {/* Section 2: Logistics */}
+          <div className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div className="label-red" style={{ marginBottom: 4 }}>[02] ХУВААРЬ & БАЙРШИЛ</div>
+
+            <div>
+              <label className="label" style={{ display: 'block', marginBottom: 6 }}>Салбар</label>
+              <select
+                className="mono"
+                value={form.cafe_id}
+                onChange={(e) => setForm({ ...form, cafe_id: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+              >
+                <option value="">— Сонгохгүй (Online) —</option>
+                {cafes.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-two-col">
+              <div>
+                <label className="label" style={{ display: 'block', marginBottom: 6 }}>Эхлэх цаг</label>
+                <input
+                  type="datetime-local"
+                  className="mono"
+                  required
+                  value={form.starts_at}
+                  onChange={(e) => setForm({ ...form, starts_at: e.target.value })}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                />
+              </div>
+              <div>
+                <label className="label" style={{ display: 'block', marginBottom: 6 }}>Дуусах цаг</label>
+                <input
+                  type="datetime-local"
+                  className="mono"
+                  required
+                  value={form.ends_at}
+                  onChange={(e) => setForm({ ...form, ends_at: e.target.value })}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                />
+              </div>
+            </div>
+
+            <div className="form-two-col">
+              <div>
+                <label className="label" style={{ display: 'block', marginBottom: 6 }}>Бүртгэл дуусах хугацаа (заавал биш)</label>
+                <input
+                  type="datetime-local"
+                  className="mono"
+                  value={form.registration_deadline}
+                  onChange={(e) => setForm({ ...form, registration_deadline: e.target.value })}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                />
+              </div>
+              <div className="desktop-only" />
+            </div>
           </div>
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Тохиргоо</label>
-            <select
-              className="mono"
-              value={form.setup_mode}
-              onChange={(e) => setForm({ ...form, setup_mode: e.target.value })}
-              style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-            >
-              <option value="manual">Гараар — хуваарь, баг гаргах</option>
-              <option value="automatic">Автомат — метадата (дараа нь bracket)</option>
-            </select>
+
+          {/* Section 3: Settings */}
+          <div className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div className="label-red" style={{ marginBottom: 4 }}>[03] ТОХИРГОО & СИСТЕМ</div>
+
+            <div className="form-two-col">
+              <div>
+                <label className="label" style={{ display: 'block', marginBottom: 6 }}>Дээд оролцогч</label>
+                <input
+                  type="number"
+                  min={2}
+                  max={512}
+                  className="mono"
+                  value={form.max_participants}
+                  onChange={(e) => setForm({ ...form, max_participants: e.target.value })}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                />
+              </div>
+              <div>
+                <label className="label" style={{ display: 'block', marginBottom: 6 }}>Шагналын сан (₮)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1000}
+                  className="mono"
+                  value={form.prize_pool_mnt}
+                  onChange={(e) => setForm({ ...form, prize_pool_mnt: e.target.value })}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                />
+              </div>
+            </div>
+
+            <div className="form-two-col">
+              <div>
+                <label className="label" style={{ display: 'block', marginBottom: 6 }}>Харагдах байдал</label>
+                <select
+                  className="mono"
+                  value={form.visibility}
+                  onChange={(e) => setForm({ ...form, visibility: e.target.value })}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                >
+                  <option value="public">Нээлттэй — бүгдэд харагдана</option>
+                  <option value="private">Хувийн — зөвхөн урилгаар</option>
+                </select>
+              </div>
+              <div>
+                <label className="label" style={{ display: 'block', marginBottom: 6 }}>Систем</label>
+                <select
+                  className="mono"
+                  value={form.bracket_type}
+                  onChange={(e) => setForm({ ...form, bracket_type: e.target.value })}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                >
+                  <option value="elimination">Шууд хасагдах (Single)</option>
+                  <option value="double_elimination">Хоёр хасагдах (Double)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-two-col">
+              <div>
+                <label className="label" style={{ display: 'block', marginBottom: 6 }}>Тохиргоо</label>
+                <select
+                  className="mono"
+                  value={form.setup_mode}
+                  onChange={(e) => setForm({ ...form, setup_mode: e.target.value })}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                >
+                  <option value="manual">Гараар — хуваарь, баг өөрөө гаргах</option>
+                  <option value="automatic">Автомат — бүртгэлээр шууд үүсгэх</option>
+                </select>
+              </div>
+              <div className="desktop-only" />
+            </div>
           </div>
-          <div>
-            <label className="label" style={{ display: 'block', marginBottom: 6 }}>Систем</label>
-            <select
-              className="mono"
-              value={form.bracket_type}
-              onChange={(e) => setForm({ ...form, bracket_type: e.target.value })}
-              style={{ width: '100%', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
-            >
-              <option value="elimination">Шууд элиминаци</option>
-              <option value="double_elimination">Давхар элиминаци (дээд + доод)</option>
-            </select>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+            <button type="submit" className="btn btn-primary" style={{ minWidth: 200 }} disabled={busy}>
+              {busy ? 'ҮҮСГЭЖ БАЙНА...' : 'ТЭМЦЭЭН ҮҮСГЭХ'}
+            </button>
           </div>
-          <button type="submit" className="btn btn-primary" disabled={busy}>
-            ҮҮСГЭХ
-          </button>
         </form>
       </div>
     </div>
