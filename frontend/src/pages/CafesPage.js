@@ -23,11 +23,6 @@ export default function CafesPage() {
     }
   };
 
-  const handleImageError = (e) => {
-    e.target.src = 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=320&h=180';
-    e.target.onerror = null; // Prevent infinite loop
-  };
-
   if (loading) {
     return (
       <div className="container" style={{ padding: '40px 20px', textAlign: 'center' }}>
@@ -53,9 +48,8 @@ export default function CafesPage() {
           <div key={cafe.id} className="card cafe-card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', border: '1px solid var(--border)', transition: 'transform 0.2s ease, border-color 0.2s ease' }}>
             <div className="cafe-image" style={{ height: 180, overflow: 'hidden', background: 'var(--bg-muted)', position: 'relative' }}>
               <img 
-                src={cafe.image_url ? `${cafe.image_url}?v=3` : 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=320&h=180'} 
-                alt={cafe.name} 
-                onError={handleImageError}
+                src={cafe.image_url ? `${cafe.image_url}?t=${Date.now()}` : '/img/cafe_pro.webp'} 
+                alt={cafe.name}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
               />
               <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', padding: '4px 10px', borderRadius: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
