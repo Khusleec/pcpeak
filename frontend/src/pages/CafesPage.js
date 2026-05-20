@@ -73,6 +73,11 @@ export default function CafesPage() {
                 <span>{cafe.address}</span>
               </div>
 
+              <div className="mono" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-dim)', marginBottom: 8 }}>
+                <Monitor size={14} />
+                <span>{cafe.vip_gpu} / {cafe.zaal_gpu}</span>
+              </div>
+
               {cafe.phone && (
                 <div className="mono" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-dim)', marginBottom: 20 }}>
                   <Phone size={14} />
@@ -89,8 +94,8 @@ export default function CafesPage() {
                     </div>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div className="mono" style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 4 }}>VIP ӨРӨӨ</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 'bold' }}>2 <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>ШИРХЭГ</span></div>
+                    <div className="mono" style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 4 }}>VIP СУУДАЛ</div>
+                    <div className="mono" style={{ fontSize: 18, fontWeight: 'bold' }}>{cafe.vip_pcs} <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>ШИРХЭГ</span></div>
                   </div>
                 </div>
 

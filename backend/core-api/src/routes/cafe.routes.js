@@ -13,7 +13,10 @@ router.get('/', cacheMiddleware(60), async (req, res) => {
     const result = await pool.query(
       `SELECT c.*,
               (SELECT COUNT(*) FROM pcs WHERE cafe_id = c.id AND status = 'available') AS available_pcs,
-              (SELECT COUNT(*) FROM pcs WHERE cafe_id = c.id) AS total_pcs
+              (SELECT COUNT(*) FROM pcs WHERE cafe_id = c.id) AS total_pcs,
+              (SELECT COUNT(*) FROM pcs WHERE cafe_id = c.id AND tier_id = 2) AS vip_pcs,
+              (SELECT gpu FROM pc_tiers WHERE id = 1) AS zaal_gpu,
+              (SELECT gpu FROM pc_tiers WHERE id = 2) AS vip_gpu
        FROM cafes c WHERE c.is_active = 1 ORDER BY c.name`
     );
     res.json(result.rows);
@@ -29,7 +32,10 @@ router.get('/:id', cacheMiddleware(60), async (req, res) => {
     const result = await pool.query(
       `SELECT c.*,
               (SELECT COUNT(*) FROM pcs WHERE cafe_id = c.id AND status = 'available') AS available_pcs,
-              (SELECT COUNT(*) FROM pcs WHERE cafe_id = c.id) AS total_pcs
+              (SELECT COUNT(*) FROM pcs WHERE cafe_id = c.id) AS total_pcs,
+              (SELECT COUNT(*) FROM pcs WHERE cafe_id = c.id AND tier_id = 2) AS vip_pcs,
+              (SELECT gpu FROM pc_tiers WHERE id = 1) AS zaal_gpu,
+              (SELECT gpu FROM pc_tiers WHERE id = 2) AS vip_gpu
        FROM cafes c WHERE c.id = ?`,
       [req.params.id]
     );
