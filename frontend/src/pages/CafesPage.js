@@ -23,6 +23,18 @@ export default function CafesPage() {
     }
   };
 
+  const getCafeImage = (name) => {
+    if (name.includes('Pro Gaming')) return '/img/cafe_pro.webp';
+    if (name.includes('Хан-Уул')) return '/img/cafe_khanuul.webp';
+    if (name.includes('Баянгол')) return '/img/cafe_bayangol.webp';
+    if (name.includes('P Gaming')) return '/img/cafe_p.webp';
+    if (name.includes('Баянзүрх')) return '/img/cafe_bayanzurkh.webp';
+    if (name.includes('Шангри-Ла')) return '/img/cafe_shangrila.webp';
+    if (name.includes('Сонгинохайрхан')) return '/img/cafe_shk.webp';
+    if (name.includes('Сансар')) return '/img/cafe_sansar.webp';
+    return '/img/cafe_extra.webp';
+  };
+
   if (loading) {
     return (
       <div className="container" style={{ padding: '40px 20px', textAlign: 'center' }}>
@@ -48,7 +60,7 @@ export default function CafesPage() {
           <div key={cafe.id} className="card cafe-card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', border: '1px solid var(--border)', transition: 'transform 0.2s ease, border-color 0.2s ease' }}>
             <div className="cafe-image" style={{ height: 180, overflow: 'hidden', background: 'var(--bg-muted)', position: 'relative' }}>
               <img 
-                src={cafe.image_url ? `${cafe.image_url}?t=${Date.now()}` : '/img/cafe_pro.webp'} 
+                src={getCafeImage(cafe.name)} 
                 alt={cafe.name}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
               />
