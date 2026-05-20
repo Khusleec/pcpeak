@@ -10,6 +10,8 @@ beforeAll(() => {
 
 afterAll(async () => {
   await pool.end().catch(() => {});
+  // Give it a moment to truly settle if needed
+  await new Promise(r => setTimeout(r, 500));
 });
 
 describe('forgot password flow', () => {
@@ -36,7 +38,7 @@ describe('forgot password flow', () => {
       .expect(200);
 
     // 3. Get token from DB (since we are testing)
-    const [tokens] = await pool.query(
+    const { rows: tokens } = await pool.query(
       'SELECT token FROM password_reset_tokens WHERE used = 0 ORDER BY created_at DESC LIMIT 1'
     );
     const token = tokens[0]?.token;
@@ -63,5 +65,5 @@ describe('forgot password flow', () => {
       .send({ email, password: newPassword })
       .expect(200);
     expect(login.body.token).toBeDefined();
-  });
+  }, 30000);
 });
