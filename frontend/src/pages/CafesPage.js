@@ -15,6 +15,7 @@ export default function CafesPage() {
   const fetchCafes = async () => {
     try {
       const res = await api.get('/cafes');
+      console.log('Cafes data:', res.data); // Debugging
       setCafes(res.data);
     } catch (err) {
       toast.error(err.userMessage || 'Салбаруудын мэдээлэл татаж чадсангүй');
@@ -48,7 +49,7 @@ export default function CafesPage() {
           <div key={cafe.id} className="card cafe-card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', border: '1px solid var(--border)', transition: 'transform 0.2s ease, border-color 0.2s ease' }}>
             <div className="cafe-image" style={{ height: 180, overflow: 'hidden', background: 'var(--bg-muted)', position: 'relative' }}>
               {cafe.image_url ? (
-                <img src={cafe.image_url} alt={cafe.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={`${cafe.image_url}?v=2`} alt={cafe.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Monitor size={48} color="var(--border)" />
