@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Power, Database, Terminal, Trophy, Shield, Menu, X } from 'lucide-react';
+import { Power, Database, Terminal, Trophy, Shield, Menu, X, Map } from 'lucide-react';
 import { isStaffRole } from '../utils/roles';
 
 export default function Navbar() {
@@ -35,6 +35,7 @@ export default function Navbar() {
 
           {/* Desktop Links */}
           <div className="navbar-links desktop-only">
+            <Link to="/cafes" className={isActive('/cafes')}><Map size={14} /> САЛБАРУУД</Link>
             <Link to="/tournaments" className={isActive('/tournaments')}><Trophy size={14} /> ТЭМЦЭЭН</Link>
             {user && <Link to="/bookings" className={isActive('/bookings')}><Database size={14} /> ЗАХИАЛГА</Link>}
             {user && isStaffRole(user.role) && (
@@ -79,6 +80,9 @@ export default function Navbar() {
         {isMenuOpen && (
           <div className="navbar-mobile-menu">
             <div className="navbar-mobile-links">
+              <Link to="/cafes" className={isActive('/cafes')} onClick={() => setIsMenuOpen(false)}>
+                <Map size={18} /> САЛБАРУУД
+              </Link>
               <Link to="/tournaments" className={isActive('/tournaments')} onClick={() => setIsMenuOpen(false)}>
                 <Trophy size={18} /> ТЭМЦЭЭН
               </Link>

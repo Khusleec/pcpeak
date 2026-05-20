@@ -129,4 +129,3 @@ Roles: `Admin`, `Moderator`.
   "message": "Validation failed",
   "details": {}
 }
-```
